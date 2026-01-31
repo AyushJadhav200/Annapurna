@@ -1,0 +1,867 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <header class="admin-header">
+        <h1><i class="fas fa-chart-line" style="margin-right:10px;"></i>Admin Command Center</h1>
+        <div class="kitchen-toggle-container">
+            <span class="status-label">Kitchen Status:</span>
+            <button class="modal-btn primary kitchen-toggle-btn"
+                class="kitchen-btn {% if stats.kitchen_status.is_open %}open{% else %}closed{% endif %}">
+                {% if stats.kitchen_status.is_open %}
+                <i class="fas fa-check-circle"></i> OPEN
+                {% else %}
+                <i class="fas fa-times-circle"></i> CLOSED
+                {% endif %}
+            </button>
+        </div>
+    </header>
+
+    <!-- Stats Grid -->
+    <div class="stats-grid">
+        <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-rupee-sign"></i></div>
+            <span class="stat-title">Daily Revenue</span>
+            <span class="stat-value">₹{{ stats.today.revenue }}</span>
+            <span class="stat-sub"><i class="fas fa-arrow-up"></i> {{ stats.today.orders }} orders today</span>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-calendar-week"></i></div>
+            <span class="stat-title">Weekly Revenue</span>
+            <span class="stat-value">₹{{ stats.this_week.revenue }}</span>
+            <span class="stat-sub"><i class="fas fa-shopping-bag"></i> {{ stats.this_week.orders }} orders</span>
+        </div>
+        <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-user-friends"></i></div>
+            <span class="stat-title">Total Users</span>
+            <span class="stat-value">{{ stats.total_users }}</span>
+            <span class="stat-sub"><i class="fas fa-star"></i> {{ stats.active_subscriptions }} active subs</span>
+        </div>
+        <div class="stat-box highlight">
+            <div class="stat-icon"><i class="fas fa-fire"></i></div>
+            <span class="stat-title">Kitchen Load</span>
+            <span class="stat-value">{{ stats.kitchen_status.current_load }}</span>
+            <span class="stat-sub">Orders in last 10 mins</span>
+        </div>
+    </div>
+
+    <div class="admin-sections">
+        <!-- Analytics Dashboard -->
+        <section class="admin-section" style="grid-column: 1 / -1; margin-bottom: 30px;">
+            <div class="section-header">
+                <h2><i class="fas fa-chart-line" style="margin-right:10px; color:var(--primary-color);"></i>Business
+                    Performance</h2>
+            </div>
+            <div class="analytics-container" style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+                <!-- Revenue Chart -->
+                <div
+                    style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f0f0f0;">
+                    <h4 style="margin-bottom: 25px; color: #444;">7-Day Revenue Trend</h4>
+                    <div
+                        style="display: flex; align-items: flex-end; justify-content: space-between; height: 180px; padding-bottom: 30px; border-bottom: 1px solid #eee; position: relative;">
+                        {% for day in analytics.revenue_chart %}
+                        {% set bar_height = (day.amount / 10)|int %}
+                        {% if bar_height < 8 %}{% set bar_height=8 %}{% endif %} <div
+                            style="flex: 1; display: flex; flex-direction: column; align-items: center; gap: 10px;">
+                            <div style="width: 35px; background: linear-gradient(to top, var(--primary-color), #ff8c5f); border-radius: 6px 6px 2px 2px; transition: height 0.3s; height: {{ bar_height }}px; min-height: 8px;"
+                                title="₹{{ day.amount }}"></div>
+                            <span style="font-size: 0.75rem; color: #888; font-weight: 600;">{{ day.date }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Top Items Card -->
+            <div
+                style="background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.03); border: 1px solid #f0f0f0;">
+                <h4 style="margin-bottom: 20px; color: #444;">Popular Items</h4>
+                <div class="top-items">
+                    {% for item in analytics.top_items %}
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f9f9f9;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span
+                                style="background: #FFF5F0; color: var(--primary-color); padding: 5px 10px; border-radius: 8px; font-weight: 800; font-size: 0.8rem;">#{{
+                                loop.index }}</span>
+                            <span style="font-weight: 500; font-size: 0.95rem;">{{ item.name }}</span>
+                        </div>
+                        <span style="color: var(--accent-green); font-weight: 700;">{{ item.sold }} orders</span>
+                    </div>
+                    {% endfor %}
+                    {% if not analytics.top_items %}
+                    <p style="text-align:center; color:#999; margin-top:20px;">No sales data yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+    </div>
+    </section>
+
+    <!-- Orders Management -->
+    <section class="admin-section">
+        <div class="section-header">
+            <h2><i class="fas fa-clipboard-list" style="margin-right:10px; color:var(--primary-color);"></i>Live
+                Orders</h2>
+        </div>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Time</th>
+                        <th>Details</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    {% if order.status in ['Pending', 'Confirmed', 'Cooking', 'Out for Delivery'] %}
+                    <tr id="order-row-{{ order.id }}">
+                        <td>#ORD-{{ "%04d"|format(order.id) }}</td>
+                        <td>{{ order.created_at.split('T')[1][:5] }}</td>
+                        <td>
+                            <div class="order-summary">{{ order.items }}</div>
+                            {% if order.is_subscription %}
+                            <span class="badge sub">Subscription</span>
+                            {% endif %}
+                        </td>
+                        <td>₹{{ order.total }}</td>
+                        <td><span class="badge {{ order.status.lower().replace(' ', '-') }}">{{ order.status
+                                }}</span></td>
+                        <td>
+                            <select class="status-select order-status-trigger" data-order-id="{{ order.id }}">
+                                <option value="Pending" {% if order.status=='Pending' %}selected{% endif %}>Pending
+                                </option>
+                                <option value="Confirmed" {% if order.status=='Confirmed' %}selected{% endif %}>
+                                    Confirm</option>
+                                <option value="Cooking" {% if order.status=='Cooking' %}selected{% endif %}>Cooking
+                                </option>
+                                <option value="Out for Delivery" {% if order.status=='Out for Delivery' %}selected{%
+                                    endif %}>Out for Delivery</option>
+                                <option value="Delivered" {% if order.status=='Delivered' %}selected{% endif %}>
+                                    Delivered</option>
+                                <option value="Cancelled" {% if order.status=='Cancelled' %}selected{% endif %}>
+                                    Cancel</option>
+                            </select>
+                        </td>
+                        <td>
+                            <select class="status-select driver-assign-trigger" data-order-id="{{ order.id }}"
+                                style="border-color: var(--accent-green); font-size: 0.8rem;">
+                                <option value="">Select Driver</option>
+                                {% for d in drivers %}
+                                <option value="{{ d.id }}" {% if order.driver_id==d.id %}selected{% endif %}>{{
+                                    d.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not orders %}
+            <p style="text-align:center; color:#999; margin-top:30px;">No active orders right now.</p>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Menu Management -->
+    <section class="admin-section">
+        <div class="section-header">
+            <h2><i class="fas fa-utensils" style="margin-right:10px; color:var(--primary-color);"></i>Menu Control
+            </h2>
+        </div>
+        <div class="menu-grid">
+            {% for item in menu_items %}
+            <div class="menu-item-admin">
+                <div class="item-header">
+                    <span class="item-name">{{ item.name }}</span>
+                    <span class="item-price">₹{{ item.price }}</span>
+                </div>
+                <div class="item-controls">
+                    <span class="item-stock">Stock: {{ item.stock_count }}</span>
+                    <label class="switch">
+                        <input type="checkbox" class="menu-toggle-trigger" data-item-id="{{ item.id }}" {% if
+                            item.is_available %}checked{% endif %}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- User Management -->
+    <section class="admin-section">
+        <div class="section-header">
+            <h2><i class="fas fa-users" style="margin-right:10px; color:var(--primary-color);"></i>Users & Loyalty
+            </h2>
+        </div>
+        <div class="table-container" style="max-height:300px; overflow-y:auto;">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Coins</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>
+                            <div style="font-weight:600;">{{ u.full_name }}</div>
+                            <div style="font-size:0.8rem; color:#999;">{{ u.email }}</div>
+                        </td>
+                        <td><span class="badge" style="background:#FFF7ED; color:#C2410C;">{{ u.coins }} 🪙</span>
+                        </td>
+                        <td>
+                            <button class="modal-btn secondary add-coins-trigger" data-user-id="{{ u.id }}"
+                                style="padding:5px 10px; background:var(--secondary-color); color:white; border:none; border-radius:6px; cursor:pointer;">
+                                + Add
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- Promo Codes -->
+    <section class="admin-section">
+        <div class="section-header">
+            <h2><i class="fas fa-tags" style="margin-right:10px; color:var(--primary-color);"></i>Coupons</h2>
+        </div>
+
+        <div style="background:#f9f9f9; padding:15px; border-radius:12px; margin-bottom:15px;">
+            <h4 style="margin:0 0 10px 0; font-size:0.9rem;">Create New Coupon</h4>
+            <div style="display:flex; gap:10px;">
+                <input type="text" id="new-promo-code" placeholder="Code (e.g. SALE50)"
+                    style="flex:1; padding:8px; border:1px solid #ddd; border-radius:6px;">
+                <input type="number" id="new-promo-disc" placeholder="%"
+                    style="width:60px; padding:8px; border:1px solid #ddd; border-radius:6px;">
+                <button class="modal-btn primary create-promo-trigger" style="flex: 1;">Create Coupon</button>
+            </div>
+        </div>
+
+        <div class="menu-grid" style="max-height:200px;">
+            {% for p in promos %}
+            <div class="menu-item-admin" id="promo-{{ p.id }}">
+                <div>
+                    <span class="item-name" style="color:var(--primary-color);">{{ p.code }}</span>
+                    <div style="font-size:0.8rem; color:#666;">{{ p.discount }} OFF</div>
+                </div>
+                <button class="modal-btn secondary delete-promo-trigger" data-id="{{ p.id }}">Delete</button>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- Partner Inquiries -->
+    <section class="admin-section" style="grid-column: 1 / -1;">
+        <div class="section-header">
+            <h2><i class="fas fa-handshake" style="margin-right:10px; color:var(--primary-color);"></i>Partner
+                Inquiries</h2>
+            <span class="badge" style="background:var(--secondary-color); color:white;">{{ inquiries|length }}
+                TOTAL</span>
+        </div>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Partner Details</th>
+                        <th>Contact</th>
+                        <th>Inquiry Info</th>
+                        <th>Date</th>
+                        <th>Status</th>
+                        <th>Assign Driver</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in inquiries %}
+                    <tr id="inquiry-row-{{ i.id }}">
+                        <td>
+                            <div style="font-weight:700; color:var(--primary-color);">{{ i.business }}</div>
+                            <div style="font-size:0.9rem;">{{ i.name }}</div>
+                        </td>
+                        <td>
+                            <div><i class="fas fa-phone"></i> {{ i.phone }}</div>
+                            <a href="https://wa.me/91{{ i.phone }}" target="_blank"
+                                style="font-size:0.8rem; color:var(--accent-green);">WhatsApp →</a>
+                        </td>
+                        <td>
+                            <div class="badge"
+                                style="display:inline-block; margin-bottom:5px; background:rgba(0,0,0,0.05);">{{
+                                i.category }}</div>
+                            <p style="font-size:0.85rem; color:#666; margin:0; max-width:300px;">{{ i.description }}
+                            </p>
+                        </td>
+                        <td style="font-size:0.85rem; color:#999;">{{ i.created_at }}</td>
+                        <td>
+                            <select class="status-select inquiry-status-trigger" data-id="{{ i.id }}">
+                                <option value="Pending" {% if i.status=='Pending' %}selected{% endif %}>Pending
+                                </option>
+                                <option value="Contacted" {% if i.status=='Contacted' %}selected{% endif %}>
+                                    Contacted</option>
+                                <option value="Rejected" {% if i.status=='Rejected' %}selected{% endif %}>Rejected
+                                </option>
+                            </select>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% if not inquiries %}
+            <p style="text-align:center; color:#999; padding:40px;">No partnership inquiries yet.</p>
+            {% endif %}
+        </div>
+    </section>
+</div>
+</div>
+
+<script>
+    async function toggleKitchen() {
+        const btn = document.getElementById('kitchen-master-btn');
+        try {
+            const response = await fetch('/api/admin/kitchen/toggle', { method: 'POST' });
+            const data = await response.json();
+            if (data.is_open) {
+                btn.innerText = 'OPEN (Ready for Orders)';
+                btn.className = 'kitchen-btn open';
+            } else {
+                btn.innerText = 'CLOSED (Paused)';
+                btn.className = 'kitchen-btn closed';
+            }
+        } catch (e) { alert('Failed to toggle kitchen'); }
+    }
+
+    async function toggleMenuItem(itemId) {
+        try {
+            await fetch(`/api/admin/menu/${itemId}/toggle`, { method: 'POST' });
+        } catch (e) { alert('Failed to toggle item'); }
+    }
+
+    // Centralized Event Delegation
+    document.addEventListener('change', async (e) => {
+        const el = e.target;
+        if (el.classList.contains('order-status-trigger')) updateOrderStatus(el.dataset.orderId, el.value);
+        if (el.classList.contains('driver-assign-trigger')) assignDriver(el.dataset.orderId, el.value);
+        if (el.classList.contains('menu-toggle-trigger')) toggleMenuItem(el.dataset.itemId);
+        if (el.classList.contains('inquiry-status-trigger')) updateInquiryStatus(el.dataset.id, el.value);
+    });
+
+    document.addEventListener('click', async (e) => {
+        const el = e.target;
+        if (el.closest('.kitchen-toggle-btn')) toggleKitchen();
+        if (el.closest('.add-coins-trigger')) addCoins(el.closest('.add-coins-trigger').dataset.userId);
+        if (el.closest('.create-promo-trigger')) createPromo();
+        if (el.closest('.delete-promo-trigger')) deletePromo(el.closest('.delete-promo-trigger').dataset.id);
+    });
+
+    async function updateOrderStatus(orderId, status) {
+        const formData = new FormData();
+        formData.append('status', status);
+        try {
+            const response = await fetch(`/api/admin/orders/${orderId}/status`, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                if (status === 'Delivered') {
+                    document.getElementById(`order-row-${orderId}`).style.opacity = '0.5';
+                }
+            }
+        } catch (e) { alert('Failed to update status'); }
+    }
+
+    async function addCoins(userId) {
+        const amount = prompt("Enter amount of coins to add:");
+        if (!amount) return;
+
+        const formData = new FormData();
+        formData.append('amount', amount);
+
+        try {
+            const res = await fetch(`/api/admin/users/${userId}/coins`, { method: 'POST', body: formData });
+            if (res.ok) {
+                alert('Coins added!');
+                location.reload();
+            }
+        } catch (e) { alert('Failed'); }
+    }
+
+    async function createPromo() {
+        const code = document.getElementById('new-promo-code').value;
+        const disc = document.getElementById('new-promo-disc').value;
+        if (!code || !disc) return;
+
+        const formData = new FormData();
+        formData.append('code', code);
+        formData.append('discount', disc);
+
+        try {
+            const res = await fetch('/api/admin/promos', { method: 'POST', body: formData });
+            if (res.ok) {
+                location.reload();
+            }
+        } catch (e) { alert('Failed'); }
+    }
+
+    async function deletePromo(id) {
+        if (!confirm('Delete this coupon?')) return;
+        try {
+            await fetch(`/api/admin/promos/${id}/delete`, { method: 'POST' });
+            document.getElementById(`promo-${id}`).remove();
+        } catch (e) { alert('Failed'); }
+    }
+
+    async function updateInquiryStatus(inquiryId, status) {
+        const formData = new FormData();
+        formData.append('status', status);
+        try {
+            const response = await fetch(`/api/admin/inquiries/${inquiryId}/status`, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                if (status === 'Rejected') {
+                    document.getElementById(`inquiry-row-${inquiryId}`).style.opacity = '0.5';
+                } else {
+                    document.getElementById(`inquiry-row-${inquiryId}`).style.opacity = '1';
+                }
+            }
+        } catch (e) { alert('Failed to update inquiry status'); }
+    }
+
+    async function assignDriver(orderId, driverId) {
+        if (!driverId) return;
+        const formData = new FormData();
+        formData.append('driver_id', driverId);
+        try {
+            const response = await fetch(`/api/admin/orders/${orderId}/assign`, {
+                method: 'POST',
+                body: formData
+            });
+            if (response.ok) {
+                alert('Driver assigned successfully');
+            }
+        } catch (e) { alert('Failed to assign driver'); }
+    }
+</script>
+
+<style>
+    :root {
+        --admin-bg: #F9F5F0;
+        --sidebar-width: 260px;
+    }
+
+    body {
+        background-color: var(--admin-bg);
+    }
+
+    .admin-dashboard {
+        padding: 40px;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 40px;
+        background: white;
+        padding: 20px 30px;
+        border-radius: 20px;
+        box-shadow: 0 5px 20px rgba(184, 92, 56, 0.08);
+        border: 1px solid var(--border-color);
+    }
+
+    .admin-header h1 {
+        font-size: 1.8rem;
+        color: var(--primary-color);
+        margin: 0;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+
+    .kitchen-toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        background: var(--bg-color);
+        padding: 8px 15px;
+        border-radius: 40px;
+    }
+
+    .status-label {
+        font-weight: 600;
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .kitchen-btn {
+        padding: 10px 24px;
+        border-radius: 30px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 0.85rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .kitchen-btn i {
+        font-size: 1rem;
+    }
+
+    .kitchen-btn.open {
+        background: var(--accent-green);
+        color: white;
+        box-shadow: 0 4px 12px rgba(107, 123, 92, 0.3);
+    }
+
+    .kitchen-btn.closed {
+        background: #D84242;
+        color: white;
+        box-shadow: 0 4px 12px rgba(216, 66, 66, 0.3);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 25px;
+        margin-bottom: 40px;
+    }
+
+    .stat-box {
+        background: white;
+        padding: 30px;
+        border-radius: 24px;
+        border: 1px solid rgba(184, 92, 56, 0.1);
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.04);
+        position: relative;
+        overflow: hidden;
+        transition: transform 0.3s;
+    }
+
+    .stat-box:hover {
+        transform: translateY(-5px);
+    }
+
+    .stat-box::before {
+        content: '';
+        position: absolute;
+        width: 80px;
+        height: 80px;
+        background: var(--primary-color);
+        opacity: 0.05;
+        border-radius: 50%;
+        top: -20px;
+        right: -20px;
+    }
+
+    .stat-icon {
+        width: 45px;
+        height: 45px;
+        background: #FFF5EC;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary-color);
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+    }
+
+    .stat-title {
+        color: #888;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+
+    .stat-value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-color);
+        letter-spacing: -1px;
+    }
+
+    .stat-sub {
+        font-size: 0.85rem;
+        color: var(--accent-green);
+        margin-top: 10px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .stat-box.highlight .stat-value {
+        color: var(--primary-color);
+    }
+
+    /* Sections */
+    .admin-sections {
+        display: grid;
+        grid-template-columns: 2fr 1fr;
+        gap: 30px;
+    }
+
+    @media (max-width: 1100px) {
+        .admin-sections {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .admin-section {
+        background: white;
+        border-radius: 24px;
+        border: 1px solid var(--border-color);
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+    }
+
+    .section-header {
+        margin-bottom: 25px;
+        border-bottom: 1px solid #f0f0f0;
+        padding-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .section-header h2 {
+        font-size: 1.2rem;
+        color: var(--text-color);
+        font-weight: 700;
+    }
+
+    /* Table */
+    .table-container {
+        overflow-x: auto;
+    }
+
+    .admin-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 10px;
+    }
+
+    .admin-table th {
+        text-align: left;
+        padding: 0 15px 10px;
+        color: #999;
+        font-weight: 600;
+        font-size: 0.85rem;
+        text-transform: uppercase;
+    }
+
+    .admin-table tr {
+        transition: transform 0.2s;
+    }
+
+    .admin-table td {
+        padding: 20px 15px;
+        background: #FAFAFA;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
+    }
+
+    .admin-table tr td:first-child {
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+        border-left: 1px solid #eee;
+    }
+
+    .admin-table tr td:last-child {
+        border-top-right-radius: 12px;
+        border-bottom-right-radius: 12px;
+        border-right: 1px solid #eee;
+    }
+
+    .admin-table tr:hover td {
+        background: #FFF5EC;
+        border-color: #ECDBC5;
+    }
+
+    .status-select {
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        background: white;
+        font-size: 0.85rem;
+        cursor: pointer;
+        color: var(--text-color);
+        outline: none;
+    }
+
+    .status-select:focus {
+        border-color: var(--primary-color);
+    }
+
+    /* Menu Grid */
+    .menu-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-height: 600px;
+        overflow-y: auto;
+        padding-right: 10px;
+    }
+
+    .menu-grid::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .menu-grid::-webkit-scrollbar-thumb {
+        background-color: #ddd;
+        border-radius: 10px;
+    }
+
+    .menu-item-admin {
+        background: white;
+        padding: 15px 20px;
+        border-radius: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #eee;
+        transition: all 0.2s;
+    }
+
+    .menu-item-admin:hover {
+        border-color: var(--secondary-color);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    }
+
+    .item-name {
+        font-weight: 600;
+        color: var(--text-color);
+        font-size: 0.95rem;
+        display: block;
+    }
+
+    .item-price {
+        font-size: 0.85rem;
+        color: var(--primary-color);
+        font-weight: 700;
+    }
+
+    .item-controls {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+    }
+
+    .item-stock {
+        font-size: 0.75rem;
+        color: #999;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: #f5f5f5;
+        padding: 4px 8px;
+        border-radius: 6px;
+    }
+
+    /* Toggle Switch */
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 24px;
+    }
+
+    .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #E2E2E2;
+        transition: .4s;
+    }
+
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    input:checked+.slider {
+        background-color: var(--accent-green);
+    }
+
+    input:checked+.slider:before {
+        transform: translateX(20px);
+    }
+
+    .slider.round {
+        border-radius: 34px;
+    }
+
+    .slider.round:before {
+        border-radius: 50%;
+    }
+
+    /* Badges */
+    .badge {
+        padding: 6px 12px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+    }
+
+    .badge.pending {
+        background: #FEF3C7;
+        color: #92400E;
+    }
+
+    .badge.confirmed {
+        background: #E0E7FF;
+        color: #3730A3;
+    }
+
+    .badge.cooking {
+        background: #F3E8FF;
+        color: #6B21A8;
+    }
+
+    .badge.delivered {
+        background: #D1FAE5;
+        color: #065F46;
+    }
+
+    .badge.sub {
+        background: var(--primary-color);
+        color: white;
+        margin-top: 5px;
+        display: inline-block;
+    }
+</style>
+{% endblock %}

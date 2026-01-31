@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-box">
+        <div style="font-size: 3rem; margin-bottom: 20px;">🍱</div>
+        <h2>Verify Your Account</h2>
+        <p style="margin-bottom: 25px; color: #666; font-size: 0.95rem;">
+            A verification code has been sent to <br>
+            <strong style="color: var(--primary-color);">{{ email }}</strong>
+        </p>
+
+        {% if error %}
+        <div
+            style="background: #FEE2E2; color: #B91C1C; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/verify-account">
+            <input type="hidden" name="email" value="{{ email }}">
+
+            <div class="otp-input-container"
+                style="display: flex; justify-content: center; gap: 10px; margin-bottom: 30px;">
+                <input type="text" name="otp" maxlength="4" placeholder="0 0 0 0" class="otp-field" required
+                    autocomplete="off"
+                    style="font-size: 2rem; width: 160px; text-align: center; letter-spacing: 12px; border: 2px solid #D2691E; background: #FFF8E1; color: #8B4513;">
+            </div>
+
+            <button type="submit" class="auth-btn" style="background: var(--primary-color);">Verify Identity</button>
+        </form>
+
+        <p style="margin-top: 25px; font-size: 0.85rem; color: #888;">
+            Didn't receive the code?
+            <a href="/login" style="color: var(--primary-color); font-weight: bold; text-decoration: none;">Try
+                again</a> or check your spam folder.
+        </p>
+    </div>
+</div>
+
+<style>
+    .auth-container {
+        min-height: 80vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: url('https://www.transparenttextures.com/patterns/paper-fibers.png'), #FDF6E3;
+        padding: 40px 20px;
+    }
+
+    .auth-box {
+        background: white;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 15px 35px rgba(139, 69, 19, 0.1);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+        border: 1px solid #E5D5C5;
+    }
+
+    .auth-box h2 {
+        font-family: 'Playfair Display', serif;
+        color: #8B4513;
+        margin-bottom: 10px;
+        font-size: 1.8rem;
+    }
+
+    .otp-field:focus {
+        outline: none;
+        box-shadow: 0 0 10px rgba(210, 105, 30, 0.2);
+        border-color: #8B4513;
+    }
+
+    .auth-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 30px;
+        color: white;
+        font-weight: bold;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: transform 0.2s, background 0.3s;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .auth-btn:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.1);
+    }
+</style>
+{% endblock %}

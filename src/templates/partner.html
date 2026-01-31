@@ -1,0 +1,148 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="partner-hero"
+    style="background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://source.unsplash.com/1600x900/?indian,food,chef'); background-size: cover; background-position: center; padding: 100px 20px; text-align: center; color: white; border-radius: 0 0 50px 50px;">
+    <h1 style="font-size: 3rem; margin-bottom: 20px;">Partner with Annapurna</h1>
+    <p style="font-size: 1.2rem; max-width: 800px; margin: 0 auto 30px;">Grow your business by selling your authentic
+        Maharashtrian products through our platform. Join our network of traditional cooks, home chefs, and local
+        producers.</p>
+</section>
+
+<section class="partner-form-section" style="padding: 60px 20px;">
+    <div class="container"
+        style="max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr 1fr; gap: 50px; align-items: center;">
+        <div class="partner-info">
+            <h2 class="section-title" style="text-align: left; margin-bottom: 30px;">Why Partner with Us?</h2>
+
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--primary-color);">🚀 Expand Your Reach</h3>
+                <p>Access thousands of customers in Pune looking for authentic traditional food.</p>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--primary-color);">📦 Hassle-Free Logistics</h3>
+                <p>We handle the delivery, so you can focus on what you do best—cooking and producing.</p>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--primary-color);">📱 Digital Presence</h3>
+                <p>Get a professional digital storefront without the high costs of building your own app.</p>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <h3 style="color: var(--primary-color);">💬 Support & Growth</h3>
+                <p>Get insights and marketing support to help scale your traditional business.</p>
+            </div>
+        </div>
+
+        <div class="form-container"
+            style="background: white; padding: 40px; border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.1); border: 1px solid #eee;">
+            <h3 style="margin-bottom: 20px; text-align: center;">Partnership Inquiry</h3>
+            <p style="text-align: center; color: #666; margin-bottom: 30px;">Fill the form below and our team will
+                contact you within 24 hours.</p>
+
+            <form id="partner-form">
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Full Name</label>
+                    <input type="text" name="name" required placeholder="Enter your name" class="modal-input"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Business Name</label>
+                    <input type="text" name="business_name" required placeholder="e.g. Grandma's Kitchen"
+                        class="modal-input"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Phone Number</label>
+                    <input type="tel" name="phone" required placeholder="Enter 10-digit number" class="modal-input"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px;">
+                </div>
+
+                <div class="form-group" style="margin-bottom: 20px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">What do you sell?</label>
+                    <select name="category" required class="modal-input"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; appearance: none;">
+                        <option value="">Select Category</option>
+                        <option value="Home Cooked Meals">Home Cooked Meals (Thalis/Dabba)</option>
+                        <option value="Snacks & Sweets">Traditional Snacks & Sweets</option>
+                        <option value="Masalas & Spices">Masalas & Spices</option>
+                        <option value="Grains & Produce">Organic Grains & Farm Produce</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+
+                <div class="form-group" style="margin-bottom: 30px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500;">Briefly describe your
+                        products</label>
+                    <textarea name="description" placeholder="Tell us about the tradition behind your products..."
+                        class="modal-input"
+                        style="width: 100%; padding: 12px; border: 1px solid #ddd; border-radius: 8px; height: 100px; resize: none;"></textarea>
+                </div>
+
+                <button type="submit" id="partner-submit-btn" class="auth-btn"
+                    style="width: 100%; padding: 15px; border-radius: 10px; font-size: 1.1rem;">Send Interest</button>
+            </form>
+
+            <div id="success-msg" style="display: none; text-align: center; margin-top: 30px;">
+                <div style="font-size: 3rem; margin-bottom: 15px;">🚀</div>
+                <h3 style="color: var(--accent-green);">Inquiry Sent Successfully!</h3>
+                <p style="color: #666;">Thank you for your interest. Our representative will call you shortly.</p>
+                <button onclick="window.location.href='/'" class="auth-btn"
+                    style="margin-top: 20px; background: none; border: 1px solid var(--primary-color); color: var(--primary-color);">Back
+                    to Home</button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    document.getElementById('partner-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('partner-submit-btn');
+        const form = e.target;
+        const successDiv = document.getElementById('success-msg');
+
+        btn.innerText = "Sending...";
+        btn.disabled = true;
+
+        const formData = new FormData(form);
+
+        try {
+            const response = await fetch('/api/partner/inquiry', {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                form.style.display = 'none';
+                successDiv.style.display = 'block';
+            } else {
+                alert("Failed to send inquiry. Please try again later.");
+                btn.innerText = "Send Interest";
+                btn.disabled = false;
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Something went wrong. Please check your connection.");
+            btn.innerText = "Send Interest";
+            btn.disabled = false;
+        }
+    });
+</script>
+
+<style>
+    @media (max-width: 768px) {
+        .container {
+            grid-template-columns: 1fr !important;
+        }
+
+        .partner-hero h1 {
+            font-size: 2rem !important;
+        }
+    }
+</style>
+{% endblock %}

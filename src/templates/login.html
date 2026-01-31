@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .auth-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 80vh;
+        background-color: var(--bg-color);
+        padding: 20px;
+    }
+
+    .auth-box {
+        background: white;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        width: 100%;
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .auth-box h2 {
+        font-family: var(--font-heading);
+        color: var(--primary-color);
+        margin-bottom: 10px;
+        font-size: 2rem;
+    }
+
+    .auth-sub {
+        color: #666;
+        margin-bottom: 30px;
+        font-size: 0.95rem;
+    }
+
+    .auth-input {
+        width: 100%;
+        padding: 12px 15px;
+        margin-bottom: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        font-family: var(--font-body);
+        font-size: 1rem;
+        transition: border-color 0.3s;
+        box-sizing: border-box;
+    }
+
+    .auth-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+    }
+
+    .auth-btn {
+        width: 100%;
+        padding: 12px;
+        background-color: var(--primary-color);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+    .auth-btn:hover {
+        background-color: #a04e2f;
+    }
+
+    .auth-link {
+        color: var(--primary-color);
+        font-weight: 600;
+        text-decoration: none;
+    }
+
+    .auth-link:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Welcome Back</h2>
+        <p class="auth-sub">Sign in to continue your food journey</p>
+
+        {% if error %}
+        <div
+            style="background: #FEE2E2; color: #B91C1C; padding: 10px; border-radius: 8px; margin-bottom: 20px; font-size: 0.9rem;">
+            {{ error }}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <input type="email" name="email" placeholder="Email Address" class="auth-input" required>
+            <input type="password" name="password" placeholder="Password" class="auth-input" required>
+            <div style="text-align:right; margin-bottom:20px;">
+                <a href="/forgot-password" style="color:#666; font-size:0.9rem; text-decoration:none;">Forgot
+                    Password?</a>
+            </div>
+            <button type="submit" class="auth-btn">LOG IN</button>
+        </form>
+
+        <p style="margin-top: 25px; font-size: 0.9rem; color: #666;">
+            New to Annapurna? <a href="/register" class="auth-link">Sign Up</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

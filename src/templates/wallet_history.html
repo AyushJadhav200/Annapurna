@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container" style="max-width: 1200px; margin: 40px auto; display: flex; gap: 30px; padding: 0 20px;">
+    <!-- Sidebar Navigation -->
+    <aside class="profile-sidebar"
+        style="width: 280px; background: white; border-radius: 24px; padding: 30px; box-shadow: 0 8px 30px rgba(0,0,0,0.05); height: fit-content; border: 1px solid #f0f0f0;">
+        <div class="user-brief"
+            style="text-align: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 1px solid #eee;">
+            <img src="https://ui-avatars.com/api/?name={{ user.full_name.replace(' ', '+') }}&background=B85C38&color=fff"
+                alt="Profile Pic" class="user-avatar"
+                style="width: 90px; height: 90px; border-radius: 50%; border: 3px solid var(--primary-color); padding: 3px; margin-bottom: 15px;">
+            <h3 class="user-name" style="font-size: 1.2rem; margin: 0; color: var(--text-color);">{{ user.full_name }}
+            </h3>
+            <p class="user-phone" style="color: #888; font-size: 0.9rem; margin-top: 5px;">{{ user.phone }}</p>
+        </div>
+        <nav class="profile-nav" style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="/profile"
+                style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 12px; text-decoration: none; color: #666; font-weight: 500; transition: all 0.2s;">
+                <span class="icon">👤</span> My Profile
+            </a>
+            <a href="/wallet-history"
+                style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 12px; text-decoration: none; background: #FFF5F0; color: var(--primary-color); font-weight: 600; border: 1px solid rgba(184, 92, 56, 0.1);">
+                <span class="icon">🪙</span> Wallet History
+            </a>
+            <a href="/logout" class="danger"
+                style="display: flex; align-items: center; gap: 12px; padding: 12px 15px; border-radius: 12px; text-decoration: none; color: #D84242; font-weight: 500; margin-top: 10px;">
+                <span class="icon">🚪</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="profile-content" style="flex: 1;">
+        <h2 class="section-heading"
+            style="font-size: 1.8rem; font-weight: 800; margin-bottom: 30px; letter-spacing: -0.5px; color: var(--text-color);">
+            Loyalty Wallet</h2>
+
+        <div class="stats-row" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div class="stat-card highlight"
+                style="background: white; padding: 25px; border-radius: 20px; border: 1px solid var(--primary-color); position: relative; overflow: hidden; box-shadow: 0 4px 20px rgba(184, 92, 56, 0.1);">
+                <span class="stat-num"
+                    style="display: block; font-size: 2rem; font-weight: 800; color: var(--primary-color); letter-spacing: -1px;">{{
+                    balance }} 🪙</span>
+                <span class="stat-label"
+                    style="font-size: 0.85rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Current
+                    Balance</span>
+            </div>
+            <div class="stat-card"
+                style="background: white; padding: 25px; border-radius: 20px; border: 1px solid #f0f0f0; box-shadow: 0 4px 20px rgba(0,0,0,0.02);">
+                <span class="stat-num"
+                    style="display: block; font-size: 2rem; font-weight: 800; color: var(--accent-green); letter-spacing: -1px;">₹{{
+                    discount|int }}</span>
+                <span class="stat-label"
+                    style="font-size: 0.85rem; color: #888; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px;">Instant
+                    Discount Available</span>
+            </div>
+        </div>
+
+        <div class="content-panel"
+            style="background: white; border-radius: 24px; padding: 30px; border: 1px solid #f0f0f0; box-shadow: 0 4px 30px rgba(0,0,0,0.03);">
+            <div class="panel-header"
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid #f9f9f9;">
+                <h3 style="margin: 0; font-size: 1.2rem; font-weight: 700;">Coin Transaction History</h3>
+            </div>
+
+            <div class="table-container" style="overflow-x: auto;">
+                <table class="order-table" style="width: 100%; border-collapse: separate; border-spacing: 0;">
+                    <thead>
+                        <tr>
+                            <th
+                                style="text-align: left; padding: 15px; color: #999; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; border-bottom: 2px solid #f9f9f9;">
+                                Date</th>
+                            <th
+                                style="text-align: left; padding: 15px; color: #999; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; border-bottom: 2px solid #f9f9f9;">
+                                Type</th>
+                            <th
+                                style="text-align: left; padding: 15px; color: #999; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; border-bottom: 2px solid #f9f9f9;">
+                                Description</th>
+                            <th
+                                style="text-align: right; padding: 15px; color: #999; font-size: 0.8rem; text-transform: uppercase; font-weight: bold; border-bottom: 2px solid #f9f9f9;">
+                                Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for tx in history %}
+                        <tr>
+                            <td style="padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem;">{{ tx.date
+                                }}</td>
+                            <td style="padding: 15px; border-bottom: 1px solid #f9f9f9;">
+                                <span class="badge"
+                                    style="padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; 
+                                    {% if tx.type == 'Earned' %} background: #D1FAE5; color: #065F46; {% else %} background: #FEE2E2; color: #991B1B; {% endif %}">
+                                    {{ tx.type }}
+                                </span>
+                            </td>
+                            <td
+                                style="padding: 15px; border-bottom: 1px solid #f9f9f9; font-size: 0.9rem; color: #666;">
+                                {{ tx.description }}</td>
+                            <td
+                                style="padding: 15px; border-bottom: 1px solid #f9f9f9; text-align: right; font-weight: bold; color: {% if tx.amount > 0 %}#10B981{% else %}#D84242{% endif %};">
+                                {{ '+' if tx.amount > 0 else '' }}{{ tx.amount }} 🪙
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% if not history %}
+            <div style="text-align: center; padding: 60px 20px;">
+                <div style="font-size: 3rem; margin-bottom: 20px;">🪙</div>
+                <h4 style="margin: 0; color: #666;">No transactions yet</h4>
+                <p style="color: #999; font-size: 0.9rem; margin-top: 10px;">Start ordering authentic meals to earn
+                    loyalty coins!</p>
+                <a href="/menu" class="auth-btn"
+                    style="display: inline-block; margin-top: 20px; text-decoration: none; padding: 10px 25px; background: var(--primary-color); color: white; border-radius: 30px; font-weight: bold;">Order
+                    Now</a>
+            </div>
+            {% endif %}
+        </div>
+    </main>
+</div>
+{% endblock %}

@@ -1,0 +1,912 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Sidebar Navigation -->
+    <aside class="profile-sidebar">
+        <div class="user-brief">
+            <img src="{{ avatar }}" alt="Profile Pic" class="user-avatar">
+            <h3 class="user-name">{{ user.full_name }}</h3>
+            <p class="user-phone">{{ user.phone }}</p>
+            <div style="margin-top: 10px;">
+                {% if user.is_verified %}
+                <span
+                    style="font-size: 0.7rem; background: var(--accent-green); color: white; padding: 4px 10px; border-radius: 15px; font-weight: bold;">🛡️
+                    2FA SECURED</span>
+                {% else %}
+                <span
+                    style="font-size: 0.7rem; background: #999; color: white; padding: 4px 10px; border-radius: 15px; font-weight: bold;">⚠️
+                    2FA PENDING</span>
+                {% endif %}
+            </div>
+        </div>
+        <nav class="profile-nav">
+            <a href="/profile" class="active"> <span class="icon">👤</span> My Profile</a>
+            <a href="/wallet-history"> <span class="icon">🪙</span> Wallet History</a>
+            <a href="#"> <span class="icon">📍</span> Addresses</a>
+            {% if user.is_admin %}
+            <a href="/admin"> <span class="icon">⚙️</span> Admin Dashboard</a>
+            {% endif %}
+            <a href="/logout" class="danger"> <span class="icon">🚪</span> Logout</a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="profile-content">
+
+        <!-- Section: Welcome -->
+        <h2 class="section-heading">Welcome, {{ user.full_name.split(' ')[0] }}!</h2>
+
+        <div class="stats-row">
+            <div class="stat-card">
+                <span class="stat-num">{{ total_orders }}</span>
+                <span class="stat-label">Recent Orders</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-num">₹{{ (loyalty_coins / 10)|int }}</span>
+                <span class="stat-label">Discount Available</span>
+            </div>
+            <div class="stat-card {% if has_active_subscription %}highlight{% endif %}">
+                <span class="stat-num">{% if has_active_subscription %}Active{% else %}Inactive{% endif %}</span>
+                <span class="stat-label">{% if has_active_subscription %}{{ subscription_plan }}{% else
+                    %}Dabba Plan{% endif %}</span>
+            </div>
+        </div>
+
+        {% if has_active_subscription %}
+        <!-- Section: Subscription Management (Phase 21) -->
+        <div class="sub-mgmt-card reveal">
+            <div class="panel-header">
+                <h3>Your {{ subscription_plan }} Dabba Management</h3>
+            </div>
+            <div style="margin-top: 15px;">
+                <p style="font-size: 0.9rem; color: #666;">Planning to be away? You can skip specific dates or pause
+                    your entire plan.</p>
+                <div class="sub-actions">
+                    <button onclick="skipTomorrow()" class="sub-btn skip">Skip Tomorrow's Meal</button>
+                    <button onclick="togglePauseSubscription()" class="sub-btn pause">
+                        {% if is_paused %}Resume Dabba{% else %}Pause Subscription{% endif %}
+                    </button>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="content-panel" style="margin-bottom: 30px;">
+            <div class="panel-header">
+                <h3>Preferences</h3>
+            </div>
+            <div style="padding: 15px; display: flex; align-items: center; gap: 20px;">
+                <div>
+                    <span style="color: #666;">Spice Level Preference:</span>
+                    <span class="badge" style="background: var(--primary-color); color: white; margin-left:10px;">{{
+                        user.spice_preference }}</span>
+                </div>
+                <div>
+                    <span style="color: #666;">Loyalty Coins:</span>
+                    <span style="font-weight: bold; color: var(--accent-green); margin-left:10px;">{{ loyalty_coins
+                        }} 🪙</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Recent Orders -->
+        <div class="content-panel">
+            <div class="panel-header">
+                <h3>Recent Order History</h3>
+                <a href="#" class="view-all">View All</a>
+            </div>
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Date</th>
+                        <th>Items</th>
+                        <th>Status</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td class="order-id">{{ order.id }}</td>
+                        <td>{{ order.date }}</td>
+                        <td class="order-items">{{ order.items_summary }}</td>
+                        <td><span class="badge {{ order.status.lower() }}">{{ order.status }}</span></td>
+                        <td class="price">₹{{ order.total }}</td>
+                        <td>
+                            {% if order.status != 'Delivered' %}
+                            <button onclick="trackOrder('{{ order.id }}', '{{ order.status }}')"
+                                class="reorder-btn track">Track 📍</button>
+                            {% else %}
+                            <div style="display:flex; gap:5px;">
+                                <button onclick="reorderItems('{{ order.id }}')" class="reorder-btn">Reorder ⟳</button>
+                                <button onclick="openRatingModal('{{ order.id }}')" class="reorder-btn"
+                                    style="background:var(--primary-color);">Rate ⭐</button>
+                            </div>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Tracking Modal -->
+        <div id="tracking-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h3>Order Tracking: <span id="track-id"></span></h3>
+                <div class="tracking-visual">
+                    <div class="tracking-line">
+                        <div id="tracking-progress" class="progress"></div>
+                        <div class="track-step" id="step-pending"><span>🕒</span>
+                            <p>Pending</p>
+                        </div>
+                        <div class="track-step" id="step-confirmed"><span>✅</span>
+                            <p>Confirmed</p>
+                        </div>
+                        <div class="track-step" id="step-cooking"><span>🍳</span>
+                            <p>Cooking</p>
+                        </div>
+                        <div class="track-step" id="step-delivered"><span>📦</span>
+                            <p>Delivered</p>
+                        </div>
+                    </div>
+                </div>
+                <div id="tracking-details" class="tracking-details">
+                    <p><strong>Est. Delivery:</strong> <span id="track-eta">30 mins</span></p>
+                    <p id="track-msg">Our kitchen is preparing your authentic meal!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section: Saved Addresses -->
+        <div class="content-panel">
+            <div class="panel-header">
+                <h3>Saved Addresses</h3>
+                <button class="add-new-btn">+ Add New</button>
+            </div>
+            <div class="address-grid">
+                {% for addr in addresses %}
+                <div class="address-card">
+                    <div class="addr-icon">📍</div>
+                    <div class="addr-details">
+                        <h4>{{ addr.label }}</h4>
+                        <p>{{ addr.address_text }}</p>
+                    </div>
+                    <button class="edit-btn">✏️</button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Add Address Modal -->
+        <div id="address-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeAddressModal()">&times;</span>
+                <h3>Add New Delivery Location</h3>
+                <form id="address-form" style="margin-top: 20px; text-align: left;">
+                    <div style="display:flex; gap:10px; margin-bottom:15px;">
+                        <button type="button" onclick="detectLocation()" class="modal-btn"
+                            style="background: var(--accent-green); flex:1;">📍 Detect Location</button>
+                    </div>
+
+                    <!-- Paste Coordinates Option -->
+                    <div class="form-group" style="margin-bottom:15px;">
+                        <label style="font-size:0.8rem; color:#888;">📋 Or paste Google Maps coordinates/link:</label>
+                        <div style="display:flex; gap:8px;">
+                            <input type="text" id="coords-input" placeholder="e.g. 18.5204, 73.8567 or Google Maps URL"
+                                class="modal-input" style="flex:1;">
+                            <button type="button" onclick="parseCoordinates()"
+                                style="background:var(--primary-color); color:white; border:none; padding:0 15px; border-radius:8px; cursor:pointer;">
+                                Go
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group" style="position: relative;">
+                        <input type="text" id="addr-search" placeholder="Or search for a location..."
+                            class="modal-input" autocomplete="off">
+                        <div id="search-results" class="search-dropdown"></div>
+                    </div>
+
+                    <div id="map" style="height: 200px; width: 100%; border-radius: 12px; margin-bottom: 15px;"></div>
+                    <p style="font-size: 0.8rem; color: #666; margin-top: -10px; margin-bottom: 15px;">Drag the pin or
+                        click on map for precision.</p>
+
+                    <!-- Delivery Zone Status -->
+                    <div id="delivery-status"
+                        style="display:none; padding:12px; border-radius:10px; margin-bottom:15px; font-size:0.9rem;">
+                        <span id="delivery-icon"></span>
+                        <span id="delivery-msg"></span>
+                        <div id="delivery-details" style="margin-top:8px; font-size:0.85rem; color:#666;"></div>
+                    </div>
+
+                    <input type="hidden" name="latitude" id="lat-field">
+                    <input type="hidden" name="longitude" id="lng-field">
+
+                    <div class="form-group">
+                        <label>Label (e.g., Home, Office)</label>
+                        <input type="text" name="label" required placeholder="Home" class="modal-input">
+                    </div>
+                    <div class="form-group">
+                        <label>Full Address</label>
+                        <textarea name="address_text" required placeholder="Building name, Flat no, Landmark..."
+                            class="modal-input" style="height: 100px;"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>City</label>
+                        <input type="text" name="city" id="city-field" placeholder="Enter your city" class="modal-input"
+                            required>
+                    </div>
+                    <button type="submit" id="save-address-btn" class="reorder-btn track"
+                        style="width: 100%; margin-top: 20px;">Save
+                        Address</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Rating Modal -->
+        <div id="rating-modal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeRatingModal()">&times;</span>
+                <h3>Rate Your Meal</h3>
+                <p id="rating-order-info" style="color: #666; margin-bottom: 20px;"></p>
+                <form id="rating-form">
+                    <div id="rating-items-list" style="margin-bottom: 20px; text-align: left;">
+                        <!-- Items will be populated here -->
+                    </div>
+                    <div class="star-rating"
+                        style="font-size: 2rem; color: #ddd; margin-bottom: 20px; cursor: pointer; display: flex; justify-content: center; gap: 10px;">
+                        <span onclick="setStars(1)" class="rating-star" data-val="1">☆</span>
+                        <span onclick="setStars(2)" class="rating-star" data-val="2">☆</span>
+                        <span onclick="setStars(3)" class="rating-star" data-val="3">☆</span>
+                        <span onclick="setStars(4)" class="rating-star" data-val="4">☆</span>
+                        <span onclick="setStars(5)" class="rating-star" data-val="5">☆</span>
+                    </div>
+                    <input type="hidden" name="score" id="score-field" required>
+                    <textarea name="comment" placeholder="Any special props to the cook?" class="modal-input"
+                        style="height: 100px; margin-bottom: 20px;"></textarea>
+                    <button type="submit" class="reorder-btn track" style="width: 100%;">Submit Review</button>
+                </form>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<script>
+    function trackOrder(id, status) {
+        const modal = document.getElementById('tracking-modal');
+        document.getElementById('track-id').innerText = id;
+
+        // Reset all steps
+        document.querySelectorAll('.track-step').forEach(s => s.classList.remove('active', 'completed'));
+        const progress = document.getElementById('tracking-progress');
+        const msg = document.getElementById('track-msg');
+
+        let percent = 0;
+        const steps = ['Pending', 'Confirmed', 'Cooking', 'Delivered'];
+        const currentIdx = steps.indexOf(status);
+
+        if (currentIdx >= 0) {
+            percent = (currentIdx / 3) * 100;
+            for (let i = 0; i <= currentIdx; i++) {
+                const step = document.getElementById(`step-${steps[i].toLowerCase()}`);
+                if (i < currentIdx) step.classList.add('completed');
+                if (i === currentIdx) step.classList.add('active');
+            }
+        }
+
+        progress.style.width = percent + '%';
+
+        if (status === 'Pending') msg.innerText = "Order received! Waiting for kitchen to confirm.";
+        if (status === 'Confirmed') msg.innerText = "Maushi has accepted your order! Prepping starts soon.";
+        if (status === 'Cooking') msg.innerText = "The chulha is hot! Your meal is being cooked fresh.";
+        if (status === 'Delivered') msg.innerText = "Enjoy your authentic meal!";
+
+        modal.style.display = "block";
+    }
+
+    function closeModal() {
+        document.getElementById('tracking-modal').style.display = "none";
+    }
+
+    // Address Modal logic
+    let map, marker;
+    function openAddressModal() {
+        document.getElementById('address-modal').style.display = "block";
+        initMap();
+    }
+
+    function initMap() {
+        if (map) return;
+        // Default to Pune center
+        const pune = [18.5204, 73.8567];
+        map = L.map('map').setView(pune, 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        marker = L.marker(pune, { draggable: true }).addTo(map);
+
+        // Update hidden fields on drag
+        marker.on('dragend', function (e) {
+            const pos = marker.getLatLng();
+            updateFields(pos.lat, pos.lng);
+        });
+
+        map.on('click', function (e) {
+            marker.setLatLng(e.latlng);
+            updateFields(e.latlng.lat, e.latlng.lng);
+        });
+    }
+
+    function updateFields(lat, lng) {
+        document.getElementById('lat-field').value = lat;
+        document.getElementById('lng-field').value = lng;
+        // Reverse geocoding
+        reverseGeocode(lat, lng);
+        // Check delivery zone
+        checkDeliveryZone(lat, lng);
+    }
+
+    // Kitchen marker (will be added once)
+    let kitchenMarker = null;
+
+    async function checkDeliveryZone(lat, lng) {
+        try {
+            const res = await fetch(`/api/location/check-delivery?lat=${lat}&lng=${lng}`);
+            const data = await res.json();
+
+            const statusDiv = document.getElementById('delivery-status');
+            const iconSpan = document.getElementById('delivery-icon');
+            const msgSpan = document.getElementById('delivery-msg');
+            const detailsDiv = document.getElementById('delivery-details');
+            const saveBtn = document.getElementById('save-address-btn');
+
+            statusDiv.style.display = 'block';
+
+            if (data.is_deliverable) {
+                statusDiv.style.background = '#D1FAE5';
+                statusDiv.style.border = '1px solid #10B981';
+                iconSpan.innerHTML = '✅';
+                msgSpan.innerHTML = ' <strong>We deliver here!</strong>';
+                detailsDiv.innerHTML = `📍 ${data.distance_km} km from kitchen • ⏱️ Est. ${data.eta_minutes} mins`;
+                saveBtn.disabled = false;
+                saveBtn.style.opacity = '1';
+            } else {
+                statusDiv.style.background = '#FEE2E2';
+                statusDiv.style.border = '1px solid #EF4444';
+                iconSpan.innerHTML = '❌';
+                msgSpan.innerHTML = ' <strong>Outside delivery zone</strong>';
+                detailsDiv.innerHTML = `📍 ${data.distance_km} km away • We only deliver within ${data.max_radius_km} km`;
+                saveBtn.disabled = true;
+                saveBtn.style.opacity = '0.5';
+            }
+
+            // Add kitchen marker if not already added
+            if (!kitchenMarker) {
+                const kitchenRes = await fetch('/api/location/kitchen');
+                const kitchen = await kitchenRes.json();
+                kitchenMarker = L.marker([kitchen.lat, kitchen.lng], {
+                    icon: L.divIcon({
+                        className: 'kitchen-marker',
+                        html: '🏠',
+                        iconSize: [30, 30]
+                    })
+                }).addTo(map).bindPopup('Annapurna Kitchen');
+            }
+
+        } catch (e) {
+            console.error("Delivery check failed", e);
+        }
+    }
+
+    // --- Search Autocomplete Logic ---
+    let searchTimer;
+    const searchInput = document.getElementById('addr-search');
+    const resultsDiv = document.getElementById('search-results');
+
+    searchInput.addEventListener('input', (e) => {
+        clearTimeout(searchTimer);
+        const query = e.target.value.trim();
+        if (query.length < 3) {
+            resultsDiv.style.display = 'none';
+            return;
+        }
+
+        searchTimer = setTimeout(() => searchLocations(query), 300);
+    });
+
+    const LOCATIONIQ_KEY = 'pk.fcd5b54d39c0f223583cf14d52c3231f';
+
+    async function searchLocations(query) {
+        try {
+            const res = await fetch(`https://api.locationiq.com/v1/autocomplete?key=${LOCATIONIQ_KEY}&q=${encodeURIComponent(query)}&limit=5&countrycodes=in&dedupe=1`);
+            const data = await res.json();
+
+            if (data.length > 0) {
+                resultsDiv.innerHTML = data.map(item => `
+                    <div class="search-item" onclick="selectSuggestion(${item.lat}, ${item.lon}, '${item.display_name.replace(/'/g, "\\'")}')">
+                        ${item.display_name}
+                    </div>
+                `).join('');
+                resultsDiv.style.display = 'block';
+            } else {
+                resultsDiv.style.display = 'none';
+            }
+        } catch (e) {
+            console.error("Search failed", e);
+        }
+    }
+
+    window.selectSuggestion = function (lat, lon, displayName) {
+        const pos = [lat, lon];
+        map.setView(pos, 16);
+        marker.setLatLng(pos);
+        updateFields(lat, lon);
+        document.querySelector('textarea[name="address_text"]').value = displayName;
+        resultsDiv.style.display = 'none';
+        searchInput.value = '';
+    };
+
+    // Parse coordinates from input (supports: "18.5, 73.8" or Google Maps URL)
+    function parseCoordinates() {
+        const input = document.getElementById('coords-input').value.trim();
+        if (!input) {
+            alert("Please paste coordinates or a Google Maps link");
+            return;
+        }
+
+        let lat, lng;
+
+        // Try to extract from Google Maps URL
+        // Formats: 
+        // https://www.google.com/maps/@18.5204,73.8567,15z
+        // https://maps.google.com/?q=18.5204,73.8567
+        // https://goo.gl/maps/... (won't work directly, need expanded URL)
+
+        const urlMatch = input.match(/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        const queryMatch = input.match(/[?&]q=(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+        const placeMatch = input.match(/place\/[^/]+\/@(-?\d+\.?\d*),(-?\d+\.?\d*)/);
+
+        if (urlMatch) {
+            lat = parseFloat(urlMatch[1]);
+            lng = parseFloat(urlMatch[2]);
+        } else if (queryMatch) {
+            lat = parseFloat(queryMatch[1]);
+            lng = parseFloat(queryMatch[2]);
+        } else if (placeMatch) {
+            lat = parseFloat(placeMatch[1]);
+            lng = parseFloat(placeMatch[2]);
+        } else {
+            // Try plain coordinates: "18.5204, 73.8567" or "18.5204,73.8567"
+            const coordMatch = input.match(/(-?\d+\.?\d*)\s*,\s*(-?\d+\.?\d*)/);
+            if (coordMatch) {
+                lat = parseFloat(coordMatch[1]);
+                lng = parseFloat(coordMatch[2]);
+            }
+        }
+
+        if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
+            // Valid coordinates found!
+            map.setView([lat, lng], 17);
+            marker.setLatLng([lat, lng]);
+            updateFields(lat, lng);
+            document.getElementById('coords-input').value = '';
+            alert(`📍 Location set to: ${lat.toFixed(4)}, ${lng.toFixed(4)}`);
+        } else {
+            alert("Could not parse coordinates. Please use format: 18.5204, 73.8567\nOr paste a full Google Maps URL.");
+        }
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+        if (e.target !== searchInput && e.target !== resultsDiv) {
+            resultsDiv.style.display = 'none';
+        }
+    });
+
+    async function reverseGeocode(lat, lng) {
+        try {
+            const res = await fetch(`https://us1.locationiq.com/v1/reverse?key=${LOCATIONIQ_KEY}&lat=${lat}&lon=${lng}&format=json`);
+            const data = await res.json();
+            if (data && data.display_name) {
+                document.querySelector('textarea[name="address_text"]').value = data.display_name;
+
+                // Auto-fill city from address data
+                const city = data.address?.city || data.address?.town || data.address?.village || data.address?.county || '';
+                document.getElementById('city-field').value = city;
+            }
+        } catch (e) {
+            console.log("Geocode failed");
+        }
+    }
+
+    function detectLocation() {
+        if (!("geolocation" in navigator)) {
+            alert("Your browser doesn't support location detection.");
+            return;
+        }
+
+        // Show loading state
+        const btn = document.querySelector('[onclick="detectLocation()"]');
+        const oldText = btn.innerHTML;
+        btn.innerHTML = "🔄 Detecting...";
+        btn.disabled = true;
+
+        const options = {
+            enableHighAccuracy: true,  // Use GPS for better accuracy
+            timeout: 15000,            // Wait up to 15 seconds
+            maximumAge: 0              // Don't use cached location
+        };
+
+        navigator.geolocation.getCurrentPosition(
+            function (position) {
+                const lat = position.coords.latitude;
+                const lng = position.coords.longitude;
+                const accuracy = position.coords.accuracy; // in meters
+
+                console.log(`Location detected: ${lat}, ${lng} (±${accuracy}m)`);
+
+                map.setView([lat, lng], 17);
+                marker.setLatLng([lat, lng]);
+                updateFields(lat, lng);
+
+                // Reset button
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+
+                // Show accuracy info
+                if (accuracy > 100) {
+                    alert(`Location detected (accuracy: ~${Math.round(accuracy)}m). For better precision, please drag the pin or use the search.`);
+                }
+            },
+            function (error) {
+                btn.innerHTML = oldText;
+                btn.disabled = false;
+
+                if (error.code === 1) {
+                    alert("Location access denied. Please enable location in your browser settings and try again.");
+                } else if (error.code === 2) {
+                    alert("Location unavailable. Please use the search or drag the pin manually.");
+                } else if (error.code === 3) {
+                    alert("Location request timed out. Please try again or use manual search.");
+                }
+            },
+            options
+        );
+    }
+
+    function closeAddressModal() {
+        document.getElementById('address-modal').style.display = "none";
+    }
+
+    document.querySelectorAll('.add-new-btn').forEach(btn => {
+        btn.addEventListener('click', openAddressModal);
+    });
+
+    document.getElementById('address-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const formData = new FormData(e.target);
+        try {
+            const res = await fetch('/api/addresses', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert('Location saved successfully!');
+                location.reload();
+            } else {
+                alert(data.detail || 'Failed to save address');
+            }
+        } catch (err) { alert('Something went wrong'); }
+    });
+
+    async function reorderItems(orderId) {
+        if (!confirm(`Do you want to add items from ${orderId} to your cart?`)) return;
+        try {
+            const res = await fetch(`/api/orders/${orderId}`);
+            const data = await res.json();
+            if (res.ok) {
+                localStorage.setItem('reorder_cart', JSON.stringify(data.items));
+                window.location.href = '/menu';
+            } else {
+                alert(data.detail || "Failed to fetch order details");
+            }
+        } catch (e) { alert("Reorder failed: " + e); }
+    }
+
+    async function skipTomorrow() {
+        if (!confirm("Are you sure you want to skip tomorrow's Dabba? You won't be charged for it.")) return;
+        try {
+            const res = await fetch('/api/subscription/skip-tomorrow', { method: 'POST' });
+            const data = await res.json();
+            alert(data.message);
+        } catch (e) { alert("Action failed"); }
+    }
+
+    async function togglePauseSubscription() {
+        const action = "{{ 'resume' if is_paused else 'pause' }}";
+        if (!confirm(`Are you sure you want to ${action} your subscription?`)) return;
+        try {
+            const subId = "{{ user.id }}";
+            const res = await fetch(`/api/subscription/${subId}/${action}`, { method: 'POST' });
+            const data = await res.json();
+            if (res.ok) {
+                alert(data.message);
+                location.reload();
+            } else {
+                alert(data.detail || "Action failed");
+            }
+        } catch (e) { alert("Action failed"); }
+    }
+
+    // --- Rating System Logic ---
+    let currentOrderId = null;
+    async function openRatingModal(orderId) {
+        currentOrderId = orderId;
+        const modal = document.getElementById('rating-modal');
+        const listDiv = document.getElementById('rating-items-list');
+        const infoP = document.getElementById('rating-order-info');
+        infoP.innerText = `Adding review for ${orderId}`;
+        listDiv.innerHTML = "Loading items...";
+        modal.style.display = "block";
+        try {
+            const res = await fetch(`/api/orders/${orderId}`);
+            const data = await res.json();
+            if (res.ok) {
+                listDiv.innerHTML = "<p style='font-size:0.9rem; margin-bottom:10px;'>What are you rating?</p>";
+                data.items.forEach((item, idx) => {
+                    listDiv.innerHTML += `
+                        <label style="display:flex; align-items:center; gap:10px; padding:8px; border:1px solid #eee; border-radius:8px; margin-bottom:5px; cursor:pointer;">
+                            <input type="radio" name="item_to_rate" value="${item.id}" ${idx === 0 ? 'checked' : ''}>
+                            <span>${item.name}</span>
+                        </label>`;
+                });
+            } else { listDiv.innerHTML = "Failed to load items."; }
+        } catch (e) { listDiv.innerHTML = "Error loading menu items."; }
+    }
+
+    function setStars(val) {
+        document.getElementById('score-field').value = val;
+        const stars = document.querySelectorAll('.rating-star');
+        stars.forEach((s, idx) => {
+            if (idx < val) {
+                s.innerText = '⭐';
+                s.style.color = '#FFB800';
+            } else {
+                s.innerText = '☆';
+                s.style.color = '#ddd';
+            }
+        });
+    }
+
+    function closeRatingModal() {
+        document.getElementById('rating-modal').style.display = "none";
+        document.getElementById('rating-form').reset();
+        setStars(0);
+    }
+
+    document.getElementById('rating-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const score = document.getElementById('score-field').value;
+        if (!score) {
+            alert("Please select a star rating!");
+            return;
+        }
+        const formData = new FormData(e.target);
+        const cleanId = currentOrderId.replace('#ORD-', '').replace(/^0+/, '');
+        try {
+            const res = await fetch(`/api/orders/${cleanId}/rate`, {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            if (res.ok) {
+                alert("Thank you! Your review helps us improve.");
+                closeRatingModal();
+            } else { alert(data.detail || "Failed to submit rating"); }
+        } catch (err) { alert("Something went wrong"); }
+    });
+
+    window.onclick = function (event) {
+        const trackModal = document.getElementById('tracking-modal');
+        const addrModal = document.getElementById('address-modal');
+        const rateModal = document.getElementById('rating-modal');
+        if (event.target == trackModal) trackModal.style.display = "none";
+        if (event.target == addrModal) addrModal.style.display = "none";
+        if (event.target == rateModal) rateModal.style.display = "none";
+    }
+</script>
+
+<style>
+    /* Tracking Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 3000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+    }
+
+    .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 30px;
+        border-radius: 20px;
+        width: 90%;
+        max-width: 500px;
+        position: relative;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    }
+
+    .close {
+        position: absolute;
+        right: 20px;
+        top: 15px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #aaa;
+        cursor: pointer;
+    }
+
+    .tracking-visual {
+        margin: 40px 0;
+    }
+
+    .tracking-line {
+        position: relative;
+        height: 4px;
+        background: #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .progress {
+        position: absolute;
+        left: 0;
+        height: 100%;
+        background: var(--accent-green);
+        transition: width 0.8s ease;
+    }
+
+    .track-step {
+        position: relative;
+        z-index: 1;
+        background: white;
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        border: 4px solid #eee;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .track-step span {
+        position: absolute;
+        top: -30px;
+        font-size: 1.2rem;
+        opacity: 0.3;
+        transition: all 0.5s;
+    }
+
+    .track-step p {
+        position: absolute;
+        bottom: -25px;
+        font-size: 0.75rem;
+        color: #999;
+        white-space: nowrap;
+    }
+
+    .track-step.active {
+        border-color: var(--accent-green);
+    }
+
+    .track-step.active span {
+        opacity: 1;
+        transform: scale(1.3);
+    }
+
+    .track-step.active p {
+        color: var(--accent-green);
+        font-weight: bold;
+    }
+
+    .track-step.completed {
+        background: var(--accent-green);
+        border-color: var(--accent-green);
+    }
+
+    .track-step.completed span {
+        opacity: 1;
+    }
+
+    .tracking-details {
+        margin-top: 30px;
+        padding: 20px;
+        background: var(--bg-color);
+        border-radius: 12px;
+    }
+
+    #track-msg {
+        color: #666;
+        font-style: italic;
+        margin-top: 10px;
+    }
+
+    .reorder-btn.track {
+        background: var(--accent-green);
+        color: white;
+        margin-top: 0;
+    }
+
+    .modal-input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-top: 5px;
+        box-sizing: border-box;
+    }
+
+    .form-group {
+        margin-bottom: 15px;
+    }
+
+    .form-group label {
+        font-size: 0.9rem;
+        color: #666;
+        font-weight: bold;
+    }
+
+    .modal-input.disabled {
+        background: #f9f9f9;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    /* Autocomplete Styles */
+    .search-dropdown {
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: white;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        z-index: 4000;
+        display: none;
+        max-height: 200px;
+        overflow-y: auto;
+    }
+
+    .search-item {
+        padding: 10px 15px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        font-size: 0.9rem;
+    }
+
+    .search-item:last-child {
+        border-bottom: none;
+    }
+
+    .search-item:hover {
+        background: #f9f9f9;
+        color: var(--primary-color);
+    }
+</style>
+{% endblock %}

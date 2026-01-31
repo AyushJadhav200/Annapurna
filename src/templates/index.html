@@ -1,0 +1,512 @@
+{% extends "base.html" %}
+
+{% block extra_head %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FoodEstablishment",
+  "name": "Annapurna",
+  "image": "https://annapurna.com/static/logo.jpg",
+  "@id": "https://annapurna.com",
+  "url": "https://annapurna.com",
+  "telephone": "+919876543210",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Flat 402, Shivneri Heights, Kothrud",
+    "addressLocality": "Pune",
+    "postalCode": "411038",
+    "addressCountry": "IN"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 18.5074,
+    "longitude": 73.8077
+  },
+  "openingHoursSpecification": {
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": [
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+      "Sunday"
+    ],
+    "opens": "08:00",
+    "closes": "22:00"
+  },
+  "servesCuisine": "Maharashtrian",
+  "priceRange": "₹₹",
+  "menu": "https://annapurna.com/menu"
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <h1>Order Authentic Maharashtrian Flavors. Discover Tradition. Annapurna it!</h1>
+
+    <div class="search-container-dual">
+        <div class="search-split location">
+            <span class="search-icon">📍</span>
+            <input type="text" placeholder="Select Delivery Area (e.g. Mira Road, Indralok)" id="location-search"
+                autocomplete="off">
+            <div id="location-suggestions" class="suggestions-dropdown"></div>
+        </div>
+        <div class="search-split menu">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="Search for a recipe, dish or spice..." id="menu-search" autocomplete="off">
+            <div id="menu-suggestions" class="suggestions-dropdown"></div>
+        </div>
+    </div>
+
+    <div style="margin-top: 30px;">
+        <a href="/partner" class="auth-btn"
+            style="background: rgba(255,255,255,0.2); border: 2px solid white; color: white; padding: 12px 25px; font-weight: 600;">Partner
+            with us</a>
+    </div>
+</section>
+
+<section class="dashboard-grid reveal">
+    <a href="/menu" class="dash-card">
+        <div>
+            <h2>Authentic Thalis</h2>
+            <p>FROM OUR KITCHENS</p>
+            <span class="offer">UPTO 40% OFF</span>
+            <div class="arrow-btn">→</div>
+        </div>
+        <div class="dash-img-container">
+            <img src="/static/thali_dash.png" alt="Thali">
+        </div>
+    </a>
+
+    <a href="/menu" class="dash-card">
+        <div>
+            <h2>Daily Dabba</h2>
+            <p>INSTANT SUBSCRIPTIONS</p>
+            <span class="offer">UPTO 30% OFF</span>
+            <div class="arrow-btn">→</div>
+        </div>
+        <div class="dash-img-container">
+            <img src="/static/dabba_dash.png" alt="Dabba">
+        </div>
+    </a>
+
+    <a href="/menu" class="dash-card">
+        <div>
+            <h2>Bulk Orders</h2>
+            <p>FEASTS & EVENTS</p>
+            <span class="offer">UPTO 50% OFF</span>
+            <div class="arrow-btn">→</div>
+        </div>
+        <div class="dash-img-container">
+            <img src="/static/bulk_dash.png" alt="Feast">
+        </div>
+    </a>
+</section>
+
+<!-- Stats Bar (Updated Context) -->
+<section class="stats-bar">
+    <div class="stat-item">
+        <h3>10k+</h3>
+        <p>Happy Residents</p>
+    </div>
+    <div class="stat-item">
+        <h3>50+</h3>
+        <p>Traditional Recipes</p>
+    </div>
+    <div class="stat-item">
+        <h3>4.8⭐</h3>
+        <p>Customer Rating</p>
+    </div>
+</section>
+
+<!-- About Us / Trust Sections -->
+<section class="about-us">
+    <div class="container">
+        <h2 class="section-title">Why Annapurna?</h2>
+        <div class="trust-grid">
+            <div class="trust-card">
+                <h3>🚜 From Farm to Thali</h3>
+                <p>We skip the middleman. By partnering directly with local Maharashtra farmers, we ensure the grains
+                    are fresh and the farmers are paid fairly.</p>
+            </div>
+            <div class="trust-card">
+                <h3>🛵 Hyperlocal Delivery</h3>
+                <p>Our delivery partners know your neighborhood like the back of their hand, ensuring your Varan Bhaat
+                    arrives steaming hot.</p>
+            </div>
+            <div class="trust-card">
+                <h3>❤️ The Annapurna Guarantee</h3>
+                <p>Not happy with the authenticity? Tell us. We are on a mission to preserve tradition, and your
+                    feedback is our guide.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+<!-- Subscription Service (Comparison Table) -->
+<section class="subscription-section">
+    <div class="container">
+        <h2 class="section-title">The Daily Dabba Plans</h2>
+        <p class="sub-head">Choose the plan that fits your lifestyle. Cancel or Pause anytime.</p>
+
+        <div class="pricing-table-container">
+            <table class="pricing-table">
+                <thead>
+                    <tr>
+                        <th>Feature</th>
+                        <th>Daily Dabba</th>
+                        <th class="highlight">Executive Thali</th>
+                        <th>Weekend Feast</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Best For</strong></td>
+                        <td>Daily Office/Home</td>
+                        <td class="highlight" style="border-bottom: none;"><strong>Premium Lunch</strong> <span
+                                style="font-size: 0.7rem; background: var(--primary-color); color: white; padding: 2px 6px; border-radius: 4px; margin-left: 5px;">POPULAR</span>
+                        </td>
+                        <td>Family Celebrations</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Daily Special</strong></td>
+                        <td>
+                            {% if daily_menu_item %}
+                            <span style="color: var(--primary-color); font-weight: bold;">{{ daily_menu_item.name
+                                }}</span><br>
+                            <span style="font-size: 0.8rem; color: #666;">+ Bhakri & Thecha</span>
+                            {% else %}
+                            Rotating Menu
+                            {% endif %}
+                        </td>
+                        <td class="highlight" style="border-bottom: none;">Choice of 2 Curries</td>
+                        <td>Full Regional Spread</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Extras</strong></td>
+                        <td>Pickle & Thecha</td>
+                        <td class="highlight" style="border-bottom: none;">Solkadhi / Dessert</td>
+                        <td>Add-on</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Monthly Price</strong></td>
+                        <td style="font-size: 1.1rem; font-weight: bold;">₹2,500</td>
+                        <td class="highlight"
+                            style="font-size: 1.2rem; font-weight: bold; color: var(--primary-color); border-bottom: none;">
+                            ₹4,200</td>
+                        <td style="font-size: 1.1rem; font-weight: bold;">₹1,800 <span
+                                style="font-size: 0.8rem; font-weight: normal;">(4 Feasts)</span></td>
+                    </tr>
+                    <tr>
+                        <td></td>
+                        <td><button class="sub-btn" onclick="startSubscription('Daily Dabba')">Select Plan</button></td>
+                        <td class="highlight"><button class="sub-btn primary"
+                                onclick="startSubscription('Executive Thali')">Select Plan</button></td>
+                        <td><button class="sub-btn" onclick="startSubscription('Weekend Feast')">Select Plan</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- Maushi's Kitchen Blog -->
+<section class="blog-section reveal">
+    <h2 class="section-title">Maushi's Kitchen</h2>
+    <p class="sub-head">Discover the history behind your favorite dishes.</p>
+    <div class="blog-grid">
+        <div class="blog-card">
+            <img src="https://source.unsplash.com/400x250/?spices,red" alt="Spices">
+            <div class="blog-content">
+                <h3>The Secret of 200-Year-Old Kolhapuri Masala</h3>
+                <p>Discover how the "Lavangi Mirchi" defines the heat...</p>
+                <a href="#">Read More &rarr;</a>
+            </div>
+        </div>
+        <div class="blog-card">
+            <img src="https://source.unsplash.com/400x250/?grains,farm" alt="Farm">
+            <div class="blog-content">
+                <h3>Regenerative Farming in Vidarbha</h3>
+                <p>How our farmers are restoring soil health...</p>
+                <a href="#">Read More &rarr;</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Location / Delivery Areas -->
+<section class="location-section reveal">
+    <h2 class="section-title">Find Us & Delivery Areas</h2>
+    <div class="location-container">
+        <div class="location-info">
+            <div class="location-card">
+                <div class="loc-icon">📍</div>
+                <h3>Our Kitchen</h3>
+                <p>Near Shaniwar Wada, Pune 411030</p>
+                <p class="loc-detail">Open: 8 AM - 10 PM (All Days)</p>
+            </div>
+            <div class="location-card">
+                <div class="loc-icon">🛵</div>
+                <h3>We Deliver To</h3>
+                <ul class="delivery-areas">
+                    <li>Mira Road (E/W)</li>
+                    <li>Bhayandar (E/W)</li>
+                    <li>Indralok</li>
+                    <li>Golden Nest</li>
+                    <li>Indralok</li>
+                    <li>Kanakia Park</li>
+                    <li>Beverly Park</li>
+                    <li>Kashimira</li>
+                </ul>
+            </div>
+            <div class="location-card">
+                <div class="loc-icon">📞</div>
+                <h3>Contact Us</h3>
+                <p><strong>Order Hotline:</strong> +91 98765 43210</p>
+                <p><strong>WhatsApp:</strong> +91 98765 43210</p>
+                <p><strong>Email:</strong> order@annapurna.com</p>
+            </div>
+        </div>
+        <div class="map-container">
+            <iframe
+                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3783.2424542297945!2d73.85536021438907!3d18.51957378740534!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bc2c065e745bc5d%3A0x9c4f3b4b49c8e0b5!2sShaniwar%20Wada!5e0!3m2!1sen!2sin!4v1609856789012!5m2!1sen!2sin"
+                width="100%" height="350" style="border:0; border-radius: 16px;" allowfullscreen="" loading="lazy">
+            </iframe>
+        </div>
+    </div>
+</section>
+
+<!-- The Annapurna Promise -->
+<section class="promise-section reveal">
+    <h2 class="section-title">The Annapurna Promise</h2>
+    <div class="steps-container">
+        <div class="step-card">
+            <div class="step-icon">🤲</div>
+            <h3>Hand-Pounded Masalas</h3>
+            <p>We use only traditional Goda and Kanda-Lasun masalas, ground the old-fashioned way.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-icon">🍃</div>
+            <h3>No Preservatives</h3>
+            <p>Fresh ingredients, zero chemicals—exactly how a mother would cook.</p>
+        </div>
+        <div class="step-card">
+            <div class="step-icon">🛖</div>
+            <h3>Regional Expertise</h3>
+            <p>Recipes sourced directly from home cooks in Kolhapur, Nagpur, Pune, and Konkan.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Subscription Confirmation Modal -->
+<div id="sub-modal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close" onclick="closeSubModal()">&times;</span>
+        <div style="margin-bottom: 15px; font-size: 3rem;">🥗</div>
+        <h3>Confirm Subscription</h3>
+        <p style="color: #666; margin-bottom: 20px;">You are selecting the <strong id="modal-plan-name"
+                style="color: var(--primary-color);"></strong> plan.</p>
+
+        <div class="plan-summary"
+            style="background: #f9f9f9; padding: 15px; border-radius: 8px; margin-bottom: 20px; text-align: left;">
+            <p><strong>Start Date:</strong> Today</p>
+            <p><strong>Payment:</strong> Pay on Delivery / Monthly Bill</p>
+            <p style="font-size: 0.9rem; color: #888; margin-top: 5px;">You can pause or cancel anytime from your
+                profile.</p>
+        </div>
+
+        <button id="confirm-sub-btn" class="auth-btn" onclick="confirmSubscription()">Confirm & Subscribe</button>
+    </div>
+</div>
+
+<script>
+    let selectedPlan = null;
+
+    function startSubscription(plan) {
+        {% if not user %}
+        alert("Please login to subscribe to a Dabba plan.");
+        window.location.href = "/login";
+        return;
+        {% endif %}
+
+        selectedPlan = plan;
+        document.getElementById('modal-plan-name').innerText = plan;
+        document.getElementById('sub-modal').style.display = 'block';
+    }
+
+    function closeSubModal() {
+        document.getElementById('sub-modal').style.display = 'none';
+        selectedPlan = null;
+    }
+
+    async function confirmSubscription() {
+        if (!selectedPlan) return;
+
+        const btn = document.getElementById('confirm-sub-btn');
+        btn.innerText = "Processing...";
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('plan_type', selectedPlan);
+
+        try {
+            const response = await fetch('/api/subscription/create', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await response.json();
+            if (response.ok) {
+                // Success UI
+                document.querySelector('.modal-content').innerHTML = `
+                    <div style="font-size: 3rem;">🎉</div>
+                    <h3 style="color: var(--accent-green);">Subscription Active!</h3>
+                    <p>Redirecting to your dashboard...</p>
+                `;
+                setTimeout(() => {
+                    window.location.href = "/profile";
+                }, 1500);
+            } else {
+                alert("Error: " + (data.detail || "Subscription failed"));
+                closeSubModal();
+                btn.innerText = "Confirm & Subscribe";
+                btn.disabled = false;
+            }
+        } catch (e) {
+            alert("Something went wrong. Please try again.");
+            closeSubModal();
+            btn.innerText = "Confirm & Subscribe";
+            btn.disabled = false;
+        }
+    }
+
+    function selectPlanColumn(colIndex, planName) {
+        // Remove selection from all cells/headings
+        document.querySelectorAll('.pricing-table td, .pricing-table th').forEach(c => c.classList.remove('col-selected'));
+
+        // Add to new column
+        document.querySelectorAll(`.pricing-table tr td:nth-child(${colIndex + 1})`).forEach(c => c.classList.add('col-selected'));
+        document.querySelectorAll(`.pricing-table thead th:nth-child(${colIndex + 1})`).forEach(c => c.classList.add('col-selected'));
+
+        startSubscription(planName);
+    }
+
+    // --- Column Hover Logic for Table ---
+    // Simple JS to add 'hovered' class to all cells in the same column
+    document.querySelectorAll('.pricing-table td').forEach(cell => {
+        if (!cell.onclick) { // Only add generic hover if not interactive (but we made them all interactive)
+            // Keeping hover logic for non-click interaction
+        }
+        cell.addEventListener('mouseenter', () => {
+            const index = cell.cellIndex;
+            if (index > 0) { // Skip "Feature" column
+                document.querySelectorAll(`.pricing-table tr td:nth-child(${index + 1})`).forEach(c => c.classList.add('col-hover'));
+                document.querySelectorAll(`.pricing-table thead th:nth-child(${index + 1})`).forEach(c => c.classList.add('col-hover'));
+            }
+        });
+        cell.addEventListener('mouseleave', () => {
+            const index = cell.cellIndex;
+            if (index > 0) {
+                document.querySelectorAll(`.pricing-table tr td:nth-child(${index + 1})`).forEach(c => c.classList.remove('col-hover'));
+                document.querySelectorAll(`.pricing-table thead th:nth-child(${index + 1})`).forEach(c =>
+                    c.classList.remove('col-hover'));
+            }
+        });
+    });
+
+    // --- Search Suggestion Logic ---
+    function debounce(func, timeout = 300) {
+        let timer;
+        return (...args) => {
+            clearTimeout(timer);
+            timer = setTimeout(() => { func.apply(this, args); }, timeout);
+        };
+    }
+
+    const locInput = document.getElementById('location-search');
+    const locDropdown = document.getElementById('location-suggestions');
+    const menuInput = document.getElementById('menu-search');
+    const menuDropdown = document.getElementById('menu-suggestions');
+
+    const handleLocationSearch = debounce(async (e) => {
+        const q = e.target.value;
+        if (q.length < 2) { locDropdown.style.display = 'none'; return; } try {
+            const res = await
+                fetch(`/api/search/location?q=${encodeURIComponent(q)}`); const data = await res.json(); if (data.length > 0) {
+                    locDropdown.innerHTML = data.map(area => `
+    <div class="suggestion-item" onclick="selectLocation('${area}')">
+        <span>${area}</span>
+        <span class="item-sub">Mira-Bhayandar</span>
+    </div>
+    `).join('');
+                    locDropdown.style.display = 'block';
+                } else {
+                locDropdown.style.display = 'none';
+            }
+        } catch (err) {
+            console.error("Location search fetch error:", err);
+        }
+    });
+
+    const handleMenuSearch = debounce(async (e) => {
+        const q = e.target.value;
+        if (q.length < 2) { menuDropdown.style.display = 'none'; return; } const res = await
+            fetch(`/api/search/food?q=${encodeURIComponent(q)}`); const data = await res.json(); if (data.length > 0) {
+                menuDropdown.innerHTML = data.map(item => `
+        <div class="suggestion-item" onclick="selectFood('${item.name}')">
+            <div>
+                <strong>${item.name}</strong>
+                <span class="item-sub">${item.category}</span>
+            </div>
+            <span>₹${item.price}</span>
+        </div>
+        `).join('');
+                menuDropdown.style.display = 'block';
+            } else {
+            menuDropdown.style.display = 'none';
+        }
+    });
+
+    locInput.addEventListener('input', handleLocationSearch);
+    menuInput.addEventListener('input', handleMenuSearch);
+
+    window.selectLocation = (area) => {
+        locInput.value = area;
+        locDropdown.style.display = 'none';
+    };
+
+    window.selectFood = (name) => {
+        window.location.href = `/menu?search=${encodeURIComponent(name)}`;
+    };
+
+    // Close dropdowns on click outside
+    document.addEventListener('click', (e) => {
+        if (!locInput.contains(e.target)) locDropdown.style.display = 'none';
+        if (!menuInput.contains(e.target)) menuDropdown.style.display = 'none';
+        if (e.target == document.getElementById('sub-modal')) closeSubModal();
+    });
+</script>
+<style>
+    /* Column Hover Effect */
+    .pricing-table td.col-hover,
+    .pricing-table th.col-hover {
+        background-color: #fff0e6 !important;
+        /* Light Terracotta tint */
+        transition: background-color 0.2s ease;
+    }
+
+    /* Ensure highlighting works even on the already styled column but keeps borders */
+    .pricing-table td.col-hover {
+        position: relative;
+        z-index: 1;
+        transform: scale(1.02);
+        /* Slight pop */
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        border: none;
+    }
+</style>
+{% endblock %}

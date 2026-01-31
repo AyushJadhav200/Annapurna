@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Annapurna - Authentic Maharashtrian Heritage Food Delivery{% endblock %}</title>
+
+    <!-- Real SEO Meta Tags -->
+    <meta name="description"
+        content="Annapurna brings you the authentic soul of Maharashtra. Order traditional Thalis, Daily Dabba subscriptions, and regional delicacies made with heritage recipes.">
+    <meta name="keywords"
+        content="Maharashtrian Food, Thali Delivery Pune, Daily Dabba Pune, Authentic Indian Food, Puran Poli delivery, Kolhapuri food, Annapurna">
+    <meta name="author" content="Annapurna Team">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph / Social Media -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://annapurna.com/">
+    <meta property="og:title" content="Annapurna - Authentic Maharashtrian Heritage Food">
+    <meta property="og:description"
+        content="Taste the forgotten regional recipes of Maharashtra. From spicy Kolhapuri curries to sweet Puran Poli.">
+    <meta property="og:image" content="/static/logo.jpg">
+
+    <!-- Twitter Card -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://annapurna.com/">
+    <meta property="twitter:title" content="Annapurna - Authentic Maharashtrian Heritage Food">
+    <meta property="twitter:description"
+        content="Nourishing your journey with authentic flavors and traditional recipes.">
+    <meta property="twitter:image" content="/static/logo.jpg">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@400;700&display=swap"
+        rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#B85C38">
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/logo_192.png">
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/style.css">
+
+    <style>
+        /* Mobile Bottom Nav */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            display: none;
+            justify-content: space-around;
+            padding: 10px 0;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .nav-item {
+            text-decoration: none;
+            color: #666;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            transition: color 0.3s;
+        }
+
+        .nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 3px;
+        }
+
+        .nav-item.active {
+            color: var(--primary-color);
+        }
+
+        @media (max-width: 768px) {
+            .bottom-nav {
+                display: flex;
+            }
+
+            header nav .nav-links {
+                display: none;
+                /* Hide desktop links on mobile since we have bottom nav */
+            }
+
+            .hamburger {
+                display: none;
+            }
+
+            body {
+                padding-bottom: 70px;
+                /* Space for bottom nav */
+            }
+        }
+    </style>
+
+    <!-- Leaflet Maps CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+    <!-- Leaflet Maps JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    {% block extra_head %}{% endblock %}
+</head>
+
+<body>
+
+    <header>
+        <div class="logo-container">
+            <img src="/static/logo.jpg" alt="Annapurna Logo" class="logo-img">
+            <div class="brand-name">ANNAPURNA</div>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/menu">Menu</a></li>
+                {% if user %}
+                <li><a href="/profile">My Profile</a></li>
+                {% if user.is_admin %}
+                <li><a href="/admin"
+                        style="background: var(--primary-color); color: white; padding: 5px 15px; border-radius: 20px;">Admin
+                        Panel</a></li>
+                {% endif %}
+                <li><a href="/logout">Logout</a></li>
+                {% else %}
+                <li><a href="/login">Login</a></li>
+                <li><a href="/register">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="bottom-nav">
+        <a href="/" class="nav-item {{ 'active' if request.url.path == '/' }}">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="/menu" class="nav-item {{ 'active' if request.url.path == '/menu' }}">
+            <i class="fas fa-utensils"></i>
+            <span>Menu</span>
+        </a>
+        <a href="/profile" class="nav-item {{ 'active' if request.url.path == '/profile' }}">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+        {% if user and user.is_admin %}
+        <a href="/admin" class="nav-item {{ 'active' if request.url.path == '/admin' }}">
+            <i class="fas fa-tools"></i>
+            <span>Admin</span>
+        </a>
+        {% endif %}
+    </div>
+
+    <script>
+        // Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('SW Registered'))
+                    .catch(err => console.log('SW Registration failed:', err));
+            });
+        }
+
+        // --- Reveal Animations on Scroll (Intersection Observer) ---
+        const revealCallback = (entries, observer) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('active');
+                }
+            });
+        };
+
+        const revealObserver = new IntersectionObserver(revealCallback, {
+            threshold: 0.1
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('.reveal').forEach(el => {
+                revealObserver.observe(el);
+            });
+        });
+    </script>
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <h3>Stay Connected with the Provider.</h3>
+            <p><strong>Address:</strong> Flat 101, Indralok Phase 3, Mira Road (East), Mira-Bhayandar, Maharashtra</p>
+            <p><strong>Contact:</strong> +91 98765 43210 | contact@annapurna.com</p>
+            <div class="social-icons" style="margin-top: 10px;">
+                <span>📷</span> <span>📘</span> <span>🐦</span>
+            </div>
+            <div style="margin-top: 15px;">
+                <a href="/partner"
+                    style="color: var(--secondary-color); text-decoration: none; font-size: 0.9rem; border: 1px solid var(--secondary-color); padding: 5px 15px; border-radius: 20px;">Partner
+                    With Us</a>
+            </div>
+            <p style="margin-top: 20px; font-size: 0.9rem;">&copy; 2026 Annapurna — Nourishing Your Journey.</p>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/919876543210?text=Hi! I need help with my Annapurna order." class="whatsapp-float reveal"
+        target="_blank">
+        <span>💬</span>
+    </a>
+</body>
+
+</html>

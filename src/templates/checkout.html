@@ -1,0 +1,744 @@
+{% extends "base.html" %}
+
+{% block title %}Checkout - Annapurna{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background-color: #F8F9FA;
+        color: #282C3F;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    .checkout-wrapper {
+        max-width: 1100px;
+        margin: 40px auto;
+        padding: 0 20px;
+        display: grid;
+        grid-template-columns: 1.8fr 1fr;
+        gap: 32px;
+    }
+
+    /* Left Column: Steps */
+    .checkout-steps {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .step-card {
+        background: #FFFFFF;
+        padding: 32px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        position: relative;
+        border: 1px solid rgba(0, 0, 0, 0.04);
+        transition: transform 0.2s ease;
+    }
+
+    .step-card.active {
+        box-shadow: 0 8px 30px rgba(184, 92, 56, 0.08);
+        border-color: rgba(184, 92, 56, 0.2);
+    }
+
+    .step-icon {
+        position: absolute;
+        left: -18px;
+        top: 32px;
+        width: 36px;
+        height: 36px;
+        background: #282C3F;
+        color: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        font-size: 1rem;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        z-index: 2;
+    }
+
+    .step-card.completed .step-icon {
+        background: #108A65;
+    }
+
+    .step-card.active .step-icon {
+        background: var(--primary-color);
+    }
+
+    .step-header {
+        margin-left: 20px;
+        margin-bottom: 24px;
+    }
+
+    .step-title {
+        font-size: 1.25rem;
+        font-weight: 800;
+        color: #282C3F;
+        margin-bottom: 4px;
+        letter-spacing: -0.3px;
+    }
+
+    .step-subtitle {
+        font-size: 0.9rem;
+        color: #686B78;
+        font-weight: 500;
+    }
+
+    /* Address Grid */
+    .address-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 20px;
+        margin-left: 20px;
+    }
+
+    .addr-card {
+        border: 1px solid #E9EBEB;
+        padding: 24px;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        background: #FFF;
+    }
+
+    .addr-card:hover {
+        border-color: #B85C38;
+        transform: translateY(-2px);
+    }
+
+    .addr-card.selected {
+        border-color: #B85C38;
+        background: #FFF9F7;
+        box-shadow: 0 4px 12px rgba(184, 92, 56, 0.1);
+    }
+
+    .addr-label {
+        font-weight: 700;
+        font-size: 1rem;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .addr-text {
+        font-size: 0.85rem;
+        color: #7E808C;
+        line-height: 1.6;
+    }
+
+    .deliver-btn {
+        margin-top: 20px;
+        width: 100%;
+        background: #B85C38;
+        color: #FFF;
+        border: none;
+        padding: 12px;
+        font-weight: 800;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        display: none;
+        transition: opacity 0.2s;
+    }
+
+    .addr-card.selected .deliver-btn {
+        display: block;
+    }
+
+    /* Payment UI */
+    .payment-list {
+        margin-left: 20px;
+    }
+
+    .pay-item {
+        display: flex;
+        align-items: center;
+        padding: 24px;
+        border: 1px solid #E9EBEB;
+        border-radius: 10px;
+        margin-bottom: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .pay-item.selected {
+        border-color: #B85C38;
+        background: #FFF9F7;
+    }
+
+    .pay-check {
+        width: 20px;
+        height: 20px;
+        border: 2px solid #D4D5D9;
+        border-radius: 50%;
+        margin-right: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .pay-item.selected .pay-check {
+        border-color: #B85C38;
+    }
+
+    .pay-item.selected .pay-check::after {
+        content: '';
+        width: 10px;
+        height: 10px;
+        background: #B85C38;
+        border-radius: 50%;
+    }
+
+    .pay-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .pay-name {
+        font-weight: 700;
+        font-size: 1rem;
+    }
+
+    /* Right Column: Order Summary */
+    .order-summary {
+        position: sticky;
+        top: 20px;
+        background: #FFF;
+        padding: 32px;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+        border: 1px solid rgba(0, 0, 0, 0.04);
+    }
+
+    .restaurant-meta {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding-bottom: 24px;
+        border-bottom: 2px solid #F1F1F6;
+        margin-bottom: 24px;
+    }
+
+    .rest-logo {
+        width: 48px;
+        height: 48px;
+        border-radius: 8px;
+        object-fit: cover;
+    }
+
+    .rest-name {
+        font-size: 1.1rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+    }
+
+    .item-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 24px;
+    }
+
+    .cart-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .item-meta {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .type-dot {
+        width: 14px;
+        height: 14px;
+        border: 1px solid #108A65;
+        border-radius: 2px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        color: #108A65;
+        flex-shrink: 0;
+    }
+
+    .type-dot.non-veg {
+        border-color: #8A300F;
+        color: #8A300F;
+    }
+
+    .item-qty-toggle {
+        display: flex;
+        align-items: center;
+        background: #FFF;
+        border: 1px solid #D4D5D9;
+        height: 32px;
+        width: 80px;
+        border-radius: 4px;
+    }
+
+    .item-qty-toggle button {
+        flex: 1;
+        border: none;
+        background: none;
+        color: #108A65;
+        font-weight: 800;
+        cursor: pointer;
+        font-size: 1.1rem;
+    }
+
+    .bill-box {
+        padding-top: 16px;
+        border-top: 2px solid #F1F1F6;
+    }
+
+    .bill-line {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 12px;
+        font-size: 0.9rem;
+        color: #686B78;
+        font-weight: 500;
+    }
+
+    .bill-line.total {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 2px solid #282C3F;
+        color: #282C3F;
+        font-weight: 800;
+        font-size: 1.15rem;
+    }
+
+    /* Checkout Pulse Animation */
+    @keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.6;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    .loading-pulse {
+        animation: pulse 1.5s infinite;
+    }
+
+    /* OTP Overlay */
+    .otp-stage {
+        margin-top: 24px;
+        padding: 24px;
+        background: #F9F9F9;
+        border-radius: 12px;
+        text-align: center;
+    }
+
+    #otp-display {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        margin: 20px 0;
+    }
+
+    .otp-cell {
+        width: 48px;
+        height: 56px;
+        border: 2px solid #D4D5D9;
+        border-radius: 8px;
+        font-size: 1.5rem;
+        font-weight: 800;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #FFF;
+        transition: border-color 0.2s;
+    }
+
+    .otp-cell.active {
+        border-color: #B85C38;
+        box-shadow: 0 0 0 3px rgba(184, 92, 56, 0.1);
+    }
+
+    .final-action-btn {
+        width: 100%;
+        height: 56px;
+        background: #B85C38;
+        color: #FFF;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.1rem;
+        font-weight: 800;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        transition: transform 0.2s, background 0.2s;
+        box-shadow: 0 4px 12px rgba(184, 92, 56, 0.2);
+    }
+
+    .final-action-btn:hover {
+        background: #A04A2B;
+        transform: translateY(-1px);
+    }
+
+    .final-action-btn:disabled {
+        background: #D4D5D9;
+        cursor: not-allowed;
+        box-shadow: none;
+    }
+</style>
+
+<div class="checkout-wrapper">
+    <!-- Left: Steps -->
+    <div class="checkout-steps">
+
+        <!-- Account Step -->
+        <div class="step-card {% if user %}completed{% else %}active{% endif %}" id="step-account">
+            <div class="step-icon">
+                {% if user %}<i class="fas fa-check"></i>{% else %}<i class="fas fa-user"></i>{% endif %}
+            </div>
+            <div class="step-header">
+                <div class="step-title">Account</div>
+                <div class="step-subtitle">
+                    {% if user %}
+                    Logged in as <b>{{ user.full_name }}</b> ({{ user.phone }})
+                    {% else %}
+                    Log in or sign up to place your order.
+                    {% endif %}
+                </div>
+            </div>
+
+            {% if not user %}
+            <div style="display: flex; gap: 16px; margin-left: 20px;">
+                <button class="final-action-btn" style="height: 48px; width: 200px;"
+                    onclick="window.location.href='/login?next=/checkout'">LOGIN</button>
+                <button class="final-action-btn" style="height: 48px; width: 200px; background:#282C3F;"
+                    onclick="window.location.href='/register?next=/checkout'">SIGN UP</button>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Address Step -->
+        <div class="step-card {% if user %}active{% endif %}" id="step-address">
+            <div class="step-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div class="step-header">
+                <div class="step-title">Delivery Address</div>
+                <div class="step-subtitle">Select where you want your meal delivered</div>
+            </div>
+
+            {% if user %}
+            <div class="address-grid">
+                {% for addr in addresses %}
+                <div class="addr-card" onclick="selectAddress(this, {{ addr.id }})">
+                    <div class="addr-label">
+                        <i
+                            class="fas {% if addr.label.lower() == 'home' %}fa-home{% elif addr.label.lower() == 'work' %}fa-briefcase{% else %}fa-map-marker-alt{% endif %}"></i>
+                        {{ addr.label }}
+                    </div>
+                    <div class="addr-text">{{ addr.address_text }}, {{ addr.city }} - {{ addr.pincode or 'N/A' }}</div>
+                    <button class="deliver-btn">DELIVER HERE</button>
+                </div>
+                {% endfor %}
+                <div class="addr-card"
+                    style="border-style: dashed; background: transparent; display: flex; align-items: center; justify-content: center; color: #B85C38; font-weight: 700;"
+                    onclick="window.location.href='/profile'">
+                    <i class="fas fa-plus-circle" style="margin-right: 8px;"></i> Add New Address
+                </div>
+            </div>
+            {% else %}
+            <div style="margin-left: 20px; color: #93959F;">Please log in to see your addresses.</div>
+            {% endif %}
+        </div>
+
+        <!-- Payment Step -->
+        <div class="step-card" id="step-payment" style="opacity: 0.5; pointer-events: none;">
+            <div class="step-icon"><i class="fas fa-wallet"></i></div>
+            <div class="step-header">
+                <div class="step-title">Payment</div>
+                <div class="step-subtitle">Choose your payment method</div>
+            </div>
+
+            <div class="payment-list">
+                <div class="pay-item selected" onclick="togglePayment(this, 'COD')">
+                    <div class="pay-check"></div>
+                    <div class="pay-info">
+                        <span class="pay-name">Cash on Delivery</span>
+                    </div>
+                </div>
+            </div>
+
+            <div id="otp-section" style="display: none;">
+                <div class="otp-stage">
+                    <div style="font-weight: 700; margin-bottom: 8px;">Order Verification</div>
+                    <div style="font-size: 0.85rem; color: #686B78;">We've sent a 4-digit code to your email</div>
+                    <div id="otp-display">
+                        <input type="text" maxlength="4" id="otp-hidden"
+                            style="position: absolute; opacity: 0; pointer-events: none;">
+                        <div class="otp-cell" id="c0">-</div>
+                        <div class="otp-cell" id="c1">-</div>
+                        <div class="otp-cell" id="c2">-</div>
+                        <div class="otp-cell" id="c3">-</div>
+                    </div>
+                    <div style="font-size: 0.8rem;">
+                        Didn't get it? <a href="javascript:resendOtp()"
+                            style="color: #B85C38; font-weight: 700;">RESEND</a>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 32px; margin-left: 20px;">
+                <button class="final-action-btn" id="main-action-btn" onclick="handleMainAction()">
+                    PROCEED TO PAY
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Order Summary -->
+    <div class="order-summary">
+        <div class="restaurant-meta">
+            <img src="/static/logo.jpg" class="rest-logo">
+            <div>
+                <div class="rest-name">Annapurna</div>
+                <div style="font-size: 0.85rem; color: #686B78;">Maharashtrian Heritage</div>
+            </div>
+        </div>
+
+        <div id="checkout-items" class="item-list">
+            <!-- Injected -->
+        </div>
+
+        <div class="bill-box">
+            <div class="bill-line">
+                <span>Item Total</span>
+                <span id="subtotal">₹0</span>
+            </div>
+            <div class="bill-line">
+                <span>Delivery Partner Fee</span>
+                <span>₹30</span>
+            </div>
+            <div class="bill-line" style="color: #108A65;">
+                <span style="display: flex; align-items: center; gap: 4px;">
+                    <i class="fas fa-tag"></i> GST Discount
+                </span>
+                <span>-₹0</span>
+            </div>
+            <div class="bill-line total">
+                <span>TO PAY</span>
+                <span id="grand-total">₹0</span>
+            </div>
+        </div>
+
+        <div style="background: #F1F1F6; padding: 20px; border-radius: 8px; margin-top: 24px;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: #282C3F; margin-bottom: 8px;">Cancellation Policy
+            </div>
+            <p style="font-size: 0.75rem; color: #686B78; line-height: 1.5;">Help us reduce food waste. Orders once
+                placed cannot be cancelled. 100% cancellation fee applicable.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    let cart = [];
+    let selectedAddressId = null;
+    let checkoutState = 'PAYMENT'; // PAYMENT -> VERIFY -> PLACING
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const stored = localStorage.getItem('annapurn_cart');
+        if (stored) {
+            cart = JSON.parse(stored);
+            renderCart();
+        } else {
+            window.location.href = '/menu';
+        }
+
+        // OTP Input Handler
+        const hiddenInput = document.getElementById('otp-hidden');
+        hiddenInput.addEventListener('input', (e) => {
+            const val = e.target.value.replace(/\D/g, '').substring(0, 4);
+            e.target.value = val;
+
+            for (let i = 0; i < 4; i++) {
+                const cell = document.getElementById(`c${i}`);
+                cell.innerText = val[i] || '-';
+                cell.classList.toggle('active', i === val.length);
+            }
+
+            if (val.length === 4) {
+                document.getElementById('main-action-btn').disabled = false;
+            }
+        });
+    });
+
+    function renderCart() {
+        const container = document.getElementById('checkout-items');
+        let subtotal = 0;
+        let html = '';
+
+        cart.forEach(item => {
+            const total = item.price * item.qty;
+            subtotal += total;
+
+            const isNonVeg = item.name.toLowerCase().match(/chicken|mutton|fish|rassa/);
+
+            html += `
+                <div class="cart-item">
+                    <div class="item-meta">
+                        <span class="type-dot ${isNonVeg ? 'non-veg' : ''}">●</span>
+                        <div>
+                            <div style="font-size: 0.9rem; font-weight: 600;">${item.name}</div>
+                            <div style="font-size: 0.8rem; color: #7E808C;">₹${item.price} each</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <div class="item-qty-toggle">
+                            <button onclick="updateQty(${item.id}, -1)">-</button>
+                            <span style="font-size: 0.85rem; font-weight: 800; width: 24px; text-align: center;">${item.qty}</span>
+                            <button onclick="updateQty(${item.id}, 1)">+</button>
+                        </div>
+                        <div style="font-size: 0.9rem; font-weight: 600; min-width: 50px; text-align: right;">₹${total}</div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+        const final = subtotal + 30;
+        document.getElementById('subtotal').innerText = `₹${subtotal}`;
+        document.getElementById('grand-total').innerText = `₹${final}`;
+
+        const btn = document.getElementById('main-action-btn');
+        if (checkoutState === 'PAYMENT') {
+            btn.innerText = `PROCEED TO PAY ₹${final}`;
+        }
+    }
+
+    function updateQty(id, delta) {
+        const idx = cart.findIndex(x => x.id == id);
+        if (idx === -1) return;
+        cart[idx].qty += delta;
+        if (cart[idx].qty <= 0) cart.splice(idx, 1);
+
+        localStorage.setItem('annapurn_cart', JSON.stringify(cart));
+        if (cart.length === 0) window.location.href = '/menu';
+        renderCart();
+    }
+
+    function selectAddress(el, id) {
+        document.querySelectorAll('.addr-card').forEach(c => c.classList.remove('selected'));
+        el.classList.add('selected');
+        selectedAddressId = id;
+
+        // Activate Payment Step
+        const payStep = document.getElementById('step-payment');
+        payStep.style.opacity = '1';
+        payStep.style.pointerEvents = 'auto';
+        payStep.classList.add('active');
+
+        document.getElementById('step-address').classList.remove('active');
+        document.getElementById('step-address').classList.add('completed');
+        document.getElementById('step-address').querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+
+        payStep.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function handleMainAction() {
+        const btn = document.getElementById('main-action-btn');
+
+        if (checkoutState === 'PAYMENT') {
+            // Initiate OTP Send
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> GENERATING CODE...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('/api/checkout/otp/send', { method: 'POST' });
+                if (res.ok) {
+                    checkoutState = 'VERIFY';
+                    document.getElementById('otp-section').style.display = 'block';
+                    btn.innerText = 'VERIFY & CONFIRM ORDER';
+                    btn.disabled = true; // Wait for 4 digits
+                    document.getElementById('otp-hidden').focus();
+                } else {
+                    alert("OTP Error. Please try again.");
+                    btn.disabled = false;
+                    renderCart();
+                }
+            } catch (e) {
+                alert("Network failure.");
+                btn.disabled = false;
+                renderCart();
+            }
+        }
+        else if (checkoutState === 'VERIFY') {
+            const otp = document.getElementById('otp-hidden').value;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> VERIFYING...';
+            btn.disabled = true;
+
+            const fd = new FormData();
+            fd.append('otp', otp);
+
+            try {
+                const res = await fetch('/api/checkout/otp/verify', { method: 'POST', body: fd });
+                if (res.ok) {
+                    placeOrder();
+                } else {
+                    const err = await res.json();
+                    alert(err.detail || "Invalid Code");
+                    document.getElementById('otp-hidden').value = '';
+                    document.querySelectorAll('.otp-cell').forEach(c => c.innerText = '-');
+                    btn.innerText = 'VERIFY & CONFIRM ORDER';
+                }
+            } catch (e) {
+                alert("Verification failed.");
+                btn.disabled = false;
+            }
+        }
+    }
+
+    async function placeOrder() {
+        const btn = document.getElementById('main-action-btn');
+        btn.innerHTML = '<i class="fas fa-hard-hat fa-spin"></i> PLACING ORDER...';
+
+        const fd = new FormData();
+        cart.forEach(item => {
+            for (let i = 0; i < item.qty; i++) fd.append('item_ids', item.id);
+        });
+        fd.append('address_id', selectedAddressId);
+        fd.append('payment_method', 'Cash');
+
+        try {
+            const res = await fetch('/api/orders', { method: 'POST', body: fd });
+            if (res.ok) {
+                localStorage.removeItem('annapurn_cart');
+                window.location.href = '/profile?order_success=true';
+            } else {
+                alert("Order placement failed.");
+                checkoutState = 'PAYMENT';
+                document.getElementById('otp-section').style.display = 'none';
+                renderCart();
+            }
+        } catch (e) {
+            alert("Checkout crashed. Contact support.");
+            btn.disabled = false;
+        }
+    }
+
+    async function resendOtp() {
+        alert("Resending verification code...");
+        await fetch('/api/checkout/otp/send', { method: 'POST' });
+    }
+</script>
+{% endblock %}
