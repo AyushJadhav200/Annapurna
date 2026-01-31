@@ -235,10 +235,12 @@ async def reset_password_submit(
     db.commit()
     
     return RedirectResponse(url="/login?error=Password+reset+successfully.+Please+login.", status_code=303)
-
-
-    redirect.delete_cookie("refresh_token")
-    return redirect
+@app.get("/logout")
+async def logout():
+    response = RedirectResponse(url="/login", status_code=303)
+    response.delete_cookie("access_token")
+    response.delete_cookie("refresh_token")
+    return response
 
 @app.post("/api/orders/{order_id}/rate")
 async def rate_order(

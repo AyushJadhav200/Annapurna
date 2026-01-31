@@ -289,7 +289,6 @@ def assign_driver_to_order(db: Session, order_id: int, driver_id: int):
         order.driver_id = driver_id
         db.commit()
     return order
-    return order
 
 # ===== ANALYTICS & TRENDS =====
 def get_detailed_analytics(db: Session) -> dict:
