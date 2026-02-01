@@ -2,7 +2,7 @@ const CACHE_NAME = 'annapurna-v1';
 const ASSETS = [
     '/',
     '/menu',
-    '/static/index.css',
+    '/static/style.css',
     '/static/manifest.json'
 ];
 
