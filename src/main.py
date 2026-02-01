@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, Header
+from fastapi import FastAPI, Request, Form, Depends, Response, HTTPException, Header, BackgroundTasks
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, RedirectResponse, JSONResponse
@@ -91,7 +91,7 @@ def require_admin(user: User = Depends(require_auth)) -> User:
     return user
 
 # ==================== PAGE ROUTES (HTML) ====================
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=HTMLResponse, methods=["GET", "HEAD"])
 async def home_page(request: Request, db: Session = Depends(get_db)):
     # Feature 3 bestsellers for the blog/preview section
     items = db.query(MenuItem).filter(MenuItem.is_available == True, MenuItem.is_bestseller == True).limit(3).all()
@@ -159,9 +159,7 @@ async def register_page(request: Request, error: str = None):
         return RedirectResponse(url="/profile", status_code=303)
     return templates.TemplateResponse("register.html", {"request": request, "error": error})
 
-@app.post("/register")
-async def register_submit(
-    request: Request,
+    background_tasks: BackgroundTasks,
     full_name: str = Form(...),
     email: str = Form(...),
     phone: str = Form(...),
@@ -182,7 +180,7 @@ async def register_submit(
     # Welcome bonus coins
     add_coins(db, user.id, 50, "Welcome bonus!")
     
-    send_otp_email(email, otp)
+    background_tasks.add_task(send_otp_email, email, otp)
     return RedirectResponse(url=f"/verify-account?email={email}", status_code=303)
 
 # ===== FORGOT PASSWORD =====
