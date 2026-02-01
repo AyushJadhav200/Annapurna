@@ -91,7 +91,7 @@ def require_admin(user: User = Depends(require_auth)) -> User:
     return user
 
 # ==================== PAGE ROUTES (HTML) ====================
-@app.get("/", response_class=HTMLResponse, methods=["GET", "HEAD"])
+@app.get("/", response_class=HTMLResponse)
 async def home_page(request: Request, db: Session = Depends(get_db)):
     # Feature 3 bestsellers for the blog/preview section
     items = db.query(MenuItem).filter(MenuItem.is_available == True, MenuItem.is_bestseller == True).limit(3).all()
