@@ -25,5 +25,5 @@ def get_db():
 
 def init_db():
     """Create all tables in the database"""
-    from models import Base as ModelBase
-    ModelBase.metadata.create_all(bind=engine)
+    import models
+    Base.metadata.create_all(bind=engine)

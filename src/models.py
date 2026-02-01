@@ -5,7 +5,7 @@ import hashlib
 import secrets
 import enum
 
-Base = declarative_base()
+from database import Base
 
 # Enums
 class SpiceLevel(str, enum.Enum):
