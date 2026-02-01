@@ -4,7 +4,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import event
 
 # SQLite database file location
-DATABASE_URL = "sqlite:///./annapurna.db"
+DATABASE_URL = "sqlite:///../annapradata.db"
 
 # Create SQLite engine
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
