@@ -846,6 +846,9 @@ def send_otp_email(target_email: str, otp: str):
 
     msg.attach(MIMEText(html_content, 'html'))
 
+    # Print OTP immediately for debugging in logs
+    print(f"DEBUG: Generated OTP {otp} for {target_email}")
+
     # Send (Try/Catch to avoid blocking on invalid credentials)
     try:
         print(f"DEBUG: Attempting to send email from {SMTP_USER} to {target_email}...")
@@ -855,7 +858,6 @@ def send_otp_email(target_email: str, otp: str):
         server.login(SMTP_USER, SMTP_PASS)
         server.send_message(msg)
         server.quit()
-        print(f"DEBUG: Email simulating sending to {target_email} with OTP {otp}")
         return True
     except Exception as e:
         print(f"DEBUG: Email send failed: {e}")
