@@ -126,6 +126,7 @@ async def login_page(request: Request, error: str = None):
 @app.post("/login")
 async def login_submit(
     request: Request,
+    background_tasks: BackgroundTasks,
     email: str = Form(...),
     password: str = Form(...),
     db: Session = Depends(get_db)
@@ -137,7 +138,7 @@ async def login_submit(
             otp = str(random.randint(1000, 9999))
             user.otp_code = otp
             db.commit()
-            send_otp_email(user.email, otp)
+            background_tasks.add_task(send_otp_email, user.email, otp)
             response = RedirectResponse(url=f"/verify-account?email={email}", status_code=303)
             return response
 
@@ -159,6 +160,9 @@ async def register_page(request: Request, error: str = None):
         return RedirectResponse(url="/profile", status_code=303)
     return templates.TemplateResponse("register.html", {"request": request, "error": error})
 
+@app.post("/register")
+async def register_submit(
+    request: Request,
     background_tasks: BackgroundTasks,
     full_name: str = Form(...),
     email: str = Form(...),
@@ -191,6 +195,7 @@ async def forgot_password_page(request: Request, error: str = None):
 @app.post("/forgot-password")
 async def forgot_password_submit(
     request: Request,
+    background_tasks: BackgroundTasks,
     email: str = Form(...),
     db: Session = Depends(get_db)
 ):
@@ -204,7 +209,7 @@ async def forgot_password_submit(
     user.otp_code = otp
     db.commit()
     
-    send_otp_email(user.email, otp)
+    background_tasks.add_task(send_otp_email, user.email, otp)
     
     # Redirect to reset page
     return RedirectResponse(url=f"/reset-password?email={email}", status_code=303)
